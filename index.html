@@ -62,6 +62,7 @@
       flex-direction: column;
       justify-content: space-between;
       padding: 12px 22px;
+      gap: 10px;
     }
 
     /* Bar Atas: Info & Skor */
@@ -75,16 +76,17 @@
       border: 1px solid rgba(255,255,255,0.12);
       flex-wrap: wrap;
       gap: 10px;
+      flex-shrink: 0;
     }
 
     .brand-title {
-      font-size: 1.2rem;
+      font-size: 1.18rem;
       font-weight: 800;
       color: var(--accent);
     }
 
     .privacy-note {
-      font-size: 0.76rem;
+      font-size: 0.75rem;
       color: #94a3b8;
       margin-top: 2px;
     }
@@ -136,101 +138,43 @@
       color: var(--accent);
     }
 
-    /* Kawasan Tengah: Tempat Makanan Muncul */
-    .spawn-area {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      margin: 4px 0;
-      min-height: 110px;
-      position: relative;
-    }
-
+    /* Arahan Baris Nipis */
     .instruction-banner {
       background: rgba(15, 23, 42, 0.92);
-      padding: 7px 18px;
+      padding: 6px 18px;
       border-radius: 20px;
-      font-size: 0.9rem;
+      font-size: 0.88rem;
       color: #e2e8f0;
-      margin-bottom: 8px;
       border: 1px solid rgba(56, 189, 248, 0.35);
       text-align: center;
       font-weight: 600;
+      width: fit-content;
+      margin: 0 auto;
+      flex-shrink: 0;
     }
 
-    #spawn-slot {
-      width: 240px;
-      height: 76px;
-      border: 2px dashed rgba(255,255,255,0.35);
-      border-radius: 14px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: #94a3b8;
-      font-size: 0.85rem;
-      font-weight: 600;
-      background: rgba(15, 23, 42, 0.45);
-    }
-
-    /* Kad Makanan yang Boleh Digerakkan */
-    #food-card {
-      position: fixed;
-      width: 235px;
-      padding: 12px 16px;
-      background: #ffffff;
-      color: #0f172a;
-      border-radius: 14px;
-      box-shadow: 0 12px 28px rgba(0,0,0,0.55);
-      text-align: center;
-      z-index: 60;
-      pointer-events: none;
-      transform: translate(-50%, -50%);
-      transition: transform 0.08s ease-out, box-shadow 0.2s;
-      border: 4px solid var(--accent);
-    }
-
-    #food-card.attached {
-      border-color: #facc15;
-      box-shadow: 0 0 28px rgba(250, 204, 21, 0.85);
-      transform: translate(-50%, -50%) scale(1.06);
-    }
-
-    .food-name {
-      font-size: 1.15rem;
-      font-weight: 800;
-      margin-bottom: 3px;
-      line-height: 1.25;
-    }
-
-    .food-hint {
-      font-size: 0.76rem;
-      color: #475569;
-      font-weight: 700;
-    }
-
-    /* Kawasan Bawah: Pinggan Bulat Sebenar & Zon Merah Luar Pinggan */
-    .bottom-stage {
+    /* Kawasan Utama: Pinggan Gergasi (Kiri/Tengah) + Panel Ambil & Zon Merah (Kanan) */
+    .main-arena {
       display: flex;
       justify-content: center;
       align-items: center;
-      gap: 36px;
+      gap: 34px;
       flex: 1;
-      max-height: 58vh;
+      min-height: 0;
       padding-bottom: 6px;
     }
 
-    /* Bingkai Luar Pinggan Bulat (Kesan Seramik 3D) */
+    /* Bingkai Luar Pinggan Bulat Gergasi */
     .plate-outer-rim {
-      width: min(54vh, 430px);
-      height: min(54vh, 430px);
+      width: min(74vh, 56vw, 590px);
+      height: min(74vh, 56vw, 590px);
       border-radius: 50%;
-      background: radial-gradient(circle, #ffffff 60%, #cbd5e1 100%);
-      padding: 16px;
+      background: radial-gradient(circle, #ffffff 62%, #cbd5e1 100%);
+      padding: 18px;
       box-shadow: 
-        0 20px 45px rgba(0,0,0,0.65),
-        inset 0 4px 10px rgba(255,255,255,0.9),
-        inset 0 -6px 14px rgba(15, 23, 42, 0.35);
+        0 22px 50px rgba(0,0,0,0.7),
+        inset 0 4px 12px rgba(255,255,255,0.95),
+        inset 0 -6px 16px rgba(15, 23, 42, 0.4);
       display: flex;
       align-items: center;
       justify-content: center;
@@ -238,7 +182,7 @@
       flex-shrink: 0;
     }
 
-    /* Bahagian Dalam Pinggan Bulat yang Dibahagi Suku-Suku-Separuh */
+    /* Bahagian Dalam Pinggan Bulat (Suku-Suku-Separuh) */
     #real-plate {
       width: 100%;
       height: 100%;
@@ -248,7 +192,7 @@
       grid-template-columns: 1fr 1fr;
       grid-template-rows: 1fr 1fr;
       background: #0f172a;
-      border: 4px solid #94a3b8;
+      border: 5px solid #94a3b8;
       position: relative;
     }
 
@@ -256,52 +200,104 @@
       position: relative;
       display: flex;
       flex-direction: column;
-      justify-content: center;
-      align-items: center;
       text-align: center;
-      padding: 14px;
-      transition: filter 0.15s, transform 0.15s, background-color 0.15s;
+      transition: filter 0.15s, background-color 0.15s;
     }
+
+    /*
+     * PELARASAN GEOMETRI SUKU BULATAN:
+     * Menolak kandungan sedikit ke arah tengah pinggan supaya tidak terpotong oleh lengkungan tepi.
+     */
 
     /* Suku Pertama: Karbohidrat (Kiri Atas) */
     .zone-karbo {
       grid-column: 1;
       grid-row: 1;
-      background: linear-gradient(135deg, rgba(234, 179, 8, 0.90), rgba(161, 98, 7, 0.92));
-      border-right: 5px solid var(--plate-rim);
-      border-bottom: 5px solid var(--plate-rim);
-      padding-top: 26px;
-      padding-left: 26px;
+      background: linear-gradient(135deg, rgba(234, 179, 8, 0.92), rgba(161, 98, 7, 0.95));
+      border-right: 6px solid var(--plate-rim);
+      border-bottom: 6px solid var(--plate-rim);
+      justify-content: flex-end;
+      align-items: center;
+      padding: 20% 8% 11% 20%;
     }
 
-    /* Suku Kedua: Protein - Warna Coklat Panggang (Kiri Bawah) */
+    /* Suku Kedua: Protein - Warna Coklat (Kiri Bawah) */
     .zone-protein {
       grid-column: 1;
       grid-row: 2;
-      background: linear-gradient(45deg, rgba(146, 64, 14, 0.94), rgba(180, 83, 9, 0.92));
-      border-right: 5px solid var(--plate-rim);
-      border-top: 5px solid var(--plate-rim);
-      padding-bottom: 26px;
-      padding-left: 26px;
+      background: linear-gradient(45deg, rgba(146, 64, 14, 0.95), rgba(180, 83, 9, 0.93));
+      border-right: 6px solid var(--plate-rim);
+      border-top: 6px solid var(--plate-rim);
+      justify-content: flex-start;
+      align-items: center;
+      padding: 11% 8% 20% 20%;
     }
 
     /* Separuh: Sayur & Buah (Kanan Penuh) */
     .zone-sayur {
       grid-column: 2;
       grid-row: 1 / span 2;
-      background: linear-gradient(90deg, rgba(5, 150, 105, 0.92), rgba(16, 185, 129, 0.90));
-      border-left: 5px solid var(--plate-rim);
-      padding-right: 22px;
+      background: linear-gradient(90deg, rgba(5, 150, 105, 0.94), rgba(16, 185, 129, 0.92));
+      border-left: 6px solid var(--plate-rim);
+      justify-content: center;
+      align-items: center;
+      padding: 12% 16% 12% 6%;
+    }
+
+    /* Lajur Kanan: Tempat Ambil Makanan + Zon Merah Luar Pinggan */
+    .side-column {
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 18px;
+      width: 280px;
+      height: min(74vh, 56vw, 590px);
+      flex-shrink: 0;
+    }
+
+    .spawn-box-wrapper {
+      background: var(--card-bg);
+      border: 2px solid rgba(56, 189, 248, 0.4);
+      border-radius: 22px;
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 36%;
+      min-height: 140px;
+    }
+
+    .spawn-label-top {
+      font-size: 0.75rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 8px;
+      letter-spacing: 0.5px;
+    }
+
+    #spawn-slot {
+      width: 100%;
+      flex: 1;
+      border: 2px dashed rgba(255,255,255,0.35);
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #94a3b8;
+      font-size: 0.85rem;
+      font-weight: 600;
+      background: rgba(15, 23, 42, 0.5);
     }
 
     /* Zon Luar Pinggan: Warna Merah Amaran */
     .zone-hadkan {
-      width: 270px;
-      height: min(46vh, 360px);
-      background: linear-gradient(160deg, rgba(220, 38, 38, 0.92), rgba(153, 27, 27, 0.95));
+      flex: 1;
+      background: linear-gradient(160deg, rgba(220, 38, 38, 0.94), rgba(153, 27, 27, 0.96));
       border: 4px dashed #fca5a5;
-      border-radius: 26px;
-      padding: 22px 18px;
+      border-radius: 24px;
+      padding: 20px 16px;
       display: flex;
       flex-direction: column;
       justify-content: space-between;
@@ -313,6 +309,42 @@
       overflow: hidden;
     }
 
+    /* Kad Makanan yang Boleh Digerakkan */
+    #food-card {
+      position: fixed;
+      width: 235px;
+      padding: 12px 16px;
+      background: #ffffff;
+      color: #0f172a;
+      border-radius: 14px;
+      box-shadow: 0 14px 30px rgba(0,0,0,0.6);
+      text-align: center;
+      z-index: 60;
+      pointer-events: none;
+      transform: translate(-50%, -50%);
+      transition: transform 0.08s ease-out, box-shadow 0.2s;
+      border: 4px solid var(--accent);
+    }
+
+    #food-card.attached {
+      border-color: #facc15;
+      box-shadow: 0 0 28px rgba(250, 204, 21, 0.9);
+      transform: translate(-50%, -50%) scale(1.06);
+    }
+
+    .food-name {
+      font-size: 1.12rem;
+      font-weight: 800;
+      margin-bottom: 3px;
+      line-height: 1.25;
+    }
+
+    .food-hint {
+      font-size: 0.75rem;
+      color: #475569;
+      font-weight: 700;
+    }
+
     /* Kesan Menyala Bila Tangan Berada Di Atas Zon */
     .drop-zone.active-hover {
       filter: brightness(1.22);
@@ -321,21 +353,23 @@
     }
 
     .zone-hadkan.active-hover {
-      transform: scale(1.04);
+      transform: scale(1.03);
       border-style: solid;
       border-color: #ffffff;
     }
 
+    /* Tipografi Dalam Pinggan (Dijamin Muat & Tidak Terpotong) */
     .zone-badge {
       display: inline-block;
       padding: 3px 10px;
       border-radius: 12px;
-      font-size: 0.68rem;
+      font-size: clamp(0.62rem, 1.1vw, 0.78rem);
       font-weight: 900;
       text-transform: uppercase;
-      letter-spacing: 0.5px;
+      letter-spacing: 0.4px;
       margin-bottom: 4px;
       box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+      white-space: nowrap;
     }
 
     .zone-karbo .zone-badge { background: #fef08a; color: #713f12; }
@@ -344,31 +378,33 @@
     .zone-hadkan .zone-badge { background: #ffffff; color: #b91c1c; }
 
     .zone-title {
-      font-size: 1.2rem;
+      font-size: clamp(1rem, 1.8vw, 1.45rem);
       font-weight: 900;
       color: #ffffff;
-      text-shadow: 0 2px 4px rgba(0,0,0,0.45);
+      text-shadow: 0 2px 4px rgba(0,0,0,0.5);
       line-height: 1.15;
     }
 
     .zone-desc {
-      font-size: 0.76rem;
+      font-size: clamp(0.7rem, 1.15vw, 0.88rem);
       color: #f8fafc;
       margin-top: 4px;
       line-height: 1.25;
       font-weight: 600;
-      max-width: 150px;
+      max-width: 92%;
     }
 
     /* Bar Masa Tahan (Dwell Progress Bar) */
     .dwell-bar-bg {
-      width: 85%;
+      width: 68%;
+      max-width: 145px;
       height: 10px;
       background: rgba(0,0,0,0.5);
       border-radius: 6px;
       overflow: hidden;
       margin-top: 8px;
-      border: 1px solid rgba(255,255,255,0.4);
+      border: 1px solid rgba(255,255,255,0.45);
+      flex-shrink: 0;
     }
 
     .dwell-bar-fill {
@@ -511,22 +547,30 @@
       color: #cbd5e1;
     }
 
-    @media (max-width: 820px) {
-      .bottom-stage {
-        gap: 16px;
+    /* Responsif untuk Skrin Sempit / Potret */
+    @media (max-width: 860px) {
+      .main-arena {
+        flex-direction: column;
+        gap: 14px;
       }
       .plate-outer-rim {
-        width: min(44vh, 310px);
-        height: min(44vh, 310px);
-        padding: 10px;
+        width: min(50vh, 84vw, 400px);
+        height: min(50vh, 84vw, 400px);
+        padding: 12px;
+      }
+      .side-column {
+        flex-direction: row;
+        width: 92vw;
+        height: 140px;
+      }
+      .spawn-box-wrapper {
+        height: 100%;
+        width: 48%;
       }
       .zone-hadkan {
-        width: 180px;
-        height: min(40vh, 280px);
-        padding: 14px 10px;
+        height: 100%;
+        padding: 12px;
       }
-      .zone-title { font-size: 0.98rem; }
-      .zone-desc { display: none; }
     }
   </style>
 </head>
@@ -565,22 +609,18 @@
       </div>
     </div>
 
-    <!-- Kawasan Makanan Muncul -->
-    <div class="spawn-area">
-      <div class="instruction-banner" id="guide-text">
-        Langkah 1: Halakan tapak tangan pada kad makanan di tengah untuk mengambilnya.
-      </div>
-      <div id="spawn-slot">Zon Ambil Makanan</div>
+    <div class="instruction-banner" id="guide-text">
+      Langkah 1: Halakan tapak tangan pada kad makanan di kotak kanan atas untuk mengambilnya.
     </div>
 
-    <!-- Kawasan Bawah: Pinggan Bulat Sebenar & Zon Merah Luar Pinggan -->
-    <div class="bottom-stage">
+    <!-- Arena Utama: Pinggan Bulat Gergasi + Panel Kanan -->
+    <div class="main-arena">
       
-      <!-- Pinggan Bulat Suku Suku Separuh -->
+      <!-- Pinggan Bulat Suku Suku Separuh (Saiz Gergasi) -->
       <div class="plate-outer-rim">
         <div id="real-plate">
           
-          <!-- Suku 1: Karbohidrat (Kuning Keemasan) -->
+          <!-- Suku 1: Karbohidrat (Kiri Atas) -->
           <div class="plate-section drop-zone zone-karbo" data-zone="KARBO">
             <span class="zone-badge">Suku (25%)</span>
             <div class="zone-title">Karbohidrat</div>
@@ -588,7 +628,7 @@
             <div class="dwell-bar-bg"><div class="dwell-bar-fill"></div></div>
           </div>
 
-          <!-- Suku 2: Protein (Coklat Panggang) -->
+          <!-- Suku 2: Protein (Kiri Bawah - Warna Coklat) -->
           <div class="plate-section drop-zone zone-protein" data-zone="PROTEIN">
             <span class="zone-badge">Suku (25%)</span>
             <div class="zone-title">Protein</div>
@@ -596,27 +636,35 @@
             <div class="dwell-bar-bg"><div class="dwell-bar-fill"></div></div>
           </div>
 
-          <!-- Separuh: Sayur & Buah (Hijau Segar) -->
+          <!-- Separuh: Sayur & Buah (Kanan Penuh - Warna Hijau) -->
           <div class="plate-section drop-zone zone-sayur" data-zone="SAYUR">
             <span class="zone-badge">Separuh (50%)</span>
             <div class="zone-title">Sayur & Buah</div>
-            <div class="zone-desc">Sayuran hijau, ulam & buah segar</div>
+            <div class="zone-desc">Sayuran hijau, ulam-ulaman & buah segar</div>
             <div class="dwell-bar-bg"><div class="dwell-bar-fill"></div></div>
           </div>
 
         </div>
       </div>
 
-      <!-- Zon Luar Pinggan: Warna Merah Amaran -->
-      <div class="drop-zone zone-hadkan" id="hadkan-box" data-zone="HADKAN">
-        <div>
-          <span class="zone-badge">Luar Pinggan (Zon Merah)</span>
-          <div class="zone-title" style="margin-top: 10px; font-size: 1.35rem;">Hadkan / Elakkan!</div>
-          <div class="zone-desc" style="max-width: 220px; margin: 10px auto 0; font-size: 0.84rem;">
-            Makanan & minuman tinggi gula, garam atau lemak tepu (Tidak termasuk dalam Pinggan Sihat)
-          </div>
+      <!-- Lajur Kanan: Kotak Ambil Makanan + Zon Merah Luar Pinggan -->
+      <div class="side-column">
+        <div class="spawn-box-wrapper">
+          <div class="spawn-label-top">1. Ambil Makanan Di Sini</div>
+          <div id="spawn-slot">Tempat Kad Makanan</div>
         </div>
-        <div class="dwell-bar-bg" style="width: 100%;"><div class="dwell-bar-fill"></div></div>
+
+        <!-- Zon Luar Pinggan: Warna Merah Amaran -->
+        <div class="drop-zone zone-hadkan" id="hadkan-box" data-zone="HADKAN">
+          <div>
+            <span class="zone-badge">Luar Pinggan (Zon Merah)</span>
+            <div class="zone-title" style="margin-top: 8px;">Hadkan / Elakkan!</div>
+            <div class="zone-desc" style="max-width: 100%; margin-top: 6px;">
+              Makanan & minuman tinggi gula, garam atau lemak tepu
+            </div>
+          </div>
+          <div class="dwell-bar-bg" style="width: 88%; max-width: none;"><div class="dwell-bar-fill"></div></div>
+        </div>
       </div>
 
     </div>
@@ -791,7 +839,7 @@
       foodNameEl.textContent = currentFood.name;
       foodHintEl.textContent = "Sentuh untuk ambil";
       qCounterEl.textContent = `${currentIndex + 1} / ${questions.length}`;
-      guideTextEl.textContent = "Langkah 1: Gerakkan tangan ke atas kad makanan di tengah untuk mengambilnya.";
+      guideTextEl.textContent = "Langkah 1: Gerakkan tangan ke atas kad makanan di kotak kanan atas untuk mengambilnya.";
 
       const slotRect = spawnSlotEl.getBoundingClientRect();
       foodCardEl.style.left = `${slotRect.left + slotRect.width / 2}px`;
