@@ -4,591 +4,166 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Cabaran Pinggan Sihat: Suku Suku Separuh</title>
-  
-  <!-- MediaPipe Libraries untuk Hand Tracking -->
-  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js" crossorigin="anonymous"></script>
 
   <style>
     :root {
       --bg-dark: #0f172a;
       --card-bg: rgba(30, 41, 59, 0.90);
-      --karbo-color: #eab308;     /* Kuning Gandum / Bijirin */
-      --protein-color: #b45309;   /* Coklat Panggang / Daging & Kekacang */
-      --sayur-color: #10b981;     /* Hijau Segar */
-      --hadkan-color: #ef4444;    /* Merah Amaran (Luar Pinggan) */
+      --karbo-color: #eab308;
+      --protein-color: #b45309;
+      --sayur-color: #10b981;
+      --hadkan-color: #ef4444;
       --accent: #38bdf8;
       --plate-rim: #e2e8f0;
     }
+    * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; -webkit-user-select: none;
+        font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    body { background-color: var(--bg-dark); color: #f8fafc; overflow: hidden; width: 100vw; height: 100vh; position: relative; touch-action: none; }
 
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-      user-select: none;
-      -webkit-user-select: none;
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-    }
+    #webcam-video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; transform: scaleX(-1); opacity: 0.38; z-index: 1; }
 
-    body {
-      background-color: var(--bg-dark);
-      color: #f8fafc;
-      overflow: hidden;
-      width: 100vw;
-      height: 100vh;
-      position: relative;
-    }
+    #game-layer { position: relative; z-index: 10; width: 100%; height: 100%; display: flex; flex-direction: column;
+      justify-content: space-between; padding: 12px 22px; gap: 10px; }
 
-    /* Kamera sebagai latar belakang cermin */
-    #webcam-video {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      transform: scaleX(-1);
-      opacity: 0.38;
-      z-index: 1;
-    }
+    .top-bar { display: flex; justify-content: space-between; align-items: center; background: var(--card-bg);
+      padding: 10px 18px; border-radius: 14px; border: 1px solid rgba(255,255,255,0.12); flex-wrap: wrap; gap: 10px; flex-shrink: 0; }
+    .brand-title { font-size: 1.18rem; font-weight: 800; color: var(--accent); }
+    .privacy-note { font-size: 0.75rem; color: #94a3b8; margin-top: 2px; }
+    .stats-box { display: flex; gap: 14px; align-items: center; flex-wrap: wrap; }
+    .stat-item { text-align: right; padding-right: 6px; }
+    .stat-label { font-size: 0.68rem; text-transform: uppercase; color: #cbd5e1; letter-spacing: 0.5px; }
+    .stat-value { font-size: 1.3rem; font-weight: 800; color: #ffffff; }
+    .stat-streak { color: #facc15; }
+    .btn-control { background: #334155; color: #f8fafc; border: 1px solid #475569; padding: 8px 14px; border-radius: 8px;
+      cursor: pointer; font-weight: 600; font-size: 0.8rem; transition: background 0.15s; }
+    .btn-control:hover { background: #475569; }
+    .btn-report { background: rgba(56, 189, 248, 0.15); border-color: var(--accent); color: var(--accent); }
 
-    /* Lapisan Antaramuka Utama */
-    #game-layer {
-      position: relative;
-      z-index: 10;
-      width: 100%;
-      height: 100%;
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-      padding: 12px 22px;
-      gap: 10px;
-    }
+    .instruction-banner { background: rgba(15, 23, 42, 0.92); padding: 6px 18px; border-radius: 20px; font-size: 0.95rem;
+      color: #e2e8f0; border: 1px solid rgba(56, 189, 248, 0.35); text-align: center; font-weight: 600; width: fit-content;
+      margin: 0 auto; flex-shrink: 0; }
 
-    /* Bar Atas: Info & Skor */
-    .top-bar {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      background: var(--card-bg);
-      padding: 10px 18px;
-      border-radius: 14px;
-      border: 1px solid rgba(255,255,255,0.12);
-      flex-wrap: wrap;
-      gap: 10px;
-      flex-shrink: 0;
-    }
+    .main-arena { display: flex; justify-content: center; align-items: center; gap: 34px; flex: 1; min-height: 0; padding-bottom: 6px; }
 
-    .brand-title {
-      font-size: 1.18rem;
-      font-weight: 800;
-      color: var(--accent);
-    }
+    .plate-outer-rim { width: min(74vh, 56vw, 590px); height: min(74vh, 56vw, 590px); border-radius: 50%;
+      background: radial-gradient(circle, #ffffff 62%, #cbd5e1 100%); padding: 18px;
+      box-shadow: 0 22px 50px rgba(0,0,0,0.7), inset 0 4px 12px rgba(255,255,255,0.95), inset 0 -6px 16px rgba(15, 23, 42, 0.4);
+      display: flex; align-items: center; justify-content: center; position: relative; flex-shrink: 0; }
+    #real-plate { width: 100%; height: 100%; border-radius: 50%; overflow: hidden; display: grid; grid-template-columns: 1fr 1fr;
+      grid-template-rows: 1fr 1fr; background: #0f172a; border: 5px solid #94a3b8; position: relative; }
+    .plate-section { position: relative; display: flex; flex-direction: column; text-align: center; transition: filter 0.15s, background-color 0.15s; }
+    .zone-karbo { grid-column: 1; grid-row: 1; background: linear-gradient(135deg, rgba(234, 179, 8, 0.92), rgba(161, 98, 7, 0.95));
+      border-right: 6px solid var(--plate-rim); border-bottom: 6px solid var(--plate-rim); justify-content: flex-end; align-items: center; padding: 20% 8% 11% 20%; }
+    .zone-protein { grid-column: 1; grid-row: 2; background: linear-gradient(45deg, rgba(146, 64, 14, 0.95), rgba(180, 83, 9, 0.93));
+      border-right: 6px solid var(--plate-rim); border-top: 6px solid var(--plate-rim); justify-content: flex-start; align-items: center; padding: 11% 8% 20% 20%; }
+    .zone-sayur { grid-column: 2; grid-row: 1 / span 2; background: linear-gradient(90deg, rgba(5, 150, 105, 0.94), rgba(16, 185, 129, 0.92));
+      border-left: 6px solid var(--plate-rim); justify-content: center; align-items: center; padding: 12% 16% 12% 6%; }
 
-    .privacy-note {
-      font-size: 0.75rem;
-      color: #94a3b8;
-      margin-top: 2px;
-    }
+    .side-column { display: flex; flex-direction: column; justify-content: space-between; gap: 18px; width: 280px;
+      height: min(74vh, 56vw, 590px); flex-shrink: 0; }
+    .spawn-box-wrapper { background: var(--card-bg); border: 2px solid rgba(56, 189, 248, 0.4); border-radius: 22px; padding: 14px;
+      display: flex; flex-direction: column; align-items: center; justify-content: center; height: 40%; min-height: 160px; }
+    .spawn-label-top { font-size: 0.75rem; font-weight: 800; text-transform: uppercase; color: var(--accent); margin-bottom: 8px; letter-spacing: 0.5px; }
+    #spawn-slot { width: 100%; flex: 1; border: 2px dashed rgba(255,255,255,0.35); border-radius: 14px; display: flex; align-items: center;
+      justify-content: center; color: #94a3b8; font-size: 0.85rem; font-weight: 600; background: rgba(15, 23, 42, 0.5); }
 
-    .stats-box {
-      display: flex;
-      gap: 14px;
-      align-items: center;
-      flex-wrap: wrap;
-    }
+    .zone-hadkan { flex: 1; background: linear-gradient(160deg, rgba(220, 38, 38, 0.94), rgba(153, 27, 27, 0.96)); border: 4px dashed #fca5a5;
+      border-radius: 24px; padding: 20px 16px; display: flex; flex-direction: column; justify-content: space-between; align-items: center;
+      text-align: center; box-shadow: 0 16px 35px rgba(239, 68, 68, 0.35); transition: transform 0.15s, border-color 0.15s, filter 0.15s;
+      position: relative; overflow: hidden; }
+    #hadkan-stack { font-size: 1.6rem; min-height: 2rem; letter-spacing: 2px; }
 
-    .stat-item {
-      text-align: right;
-      padding-right: 6px;
-    }
+    /* Kad makanan */
+    #food-card { position: fixed; width: 235px; padding: 12px 16px; background: #ffffff; color: #0f172a; border-radius: 14px;
+      box-shadow: 0 14px 30px rgba(0,0,0,0.6); text-align: center; z-index: 60; pointer-events: none; transform: translate(-50%, -50%);
+      transition: transform 0.08s ease-out, box-shadow 0.2s; border: 4px solid var(--accent); }
+    #food-card.hover-ready { border-color: #a3e635; box-shadow: 0 0 22px rgba(163, 230, 53, 0.8); }
+    #food-card.attached { border-color: #facc15; box-shadow: 0 0 28px rgba(250, 204, 21, 0.9); transform: translate(-50%, -50%) scale(1.06); }
+    #food-card.returning { transition: left 0.35s ease-out, top 0.35s ease-out, transform 0.08s; }
+    .food-emoji { font-size: 2.8rem; line-height: 1.1; }
+    .food-name { font-size: 1.12rem; font-weight: 800; margin-bottom: 3px; line-height: 1.25; }
+    .food-hint { font-size: 0.75rem; color: #475569; font-weight: 700; }
 
-    .stat-label {
-      font-size: 0.68rem;
-      text-transform: uppercase;
-      color: #cbd5e1;
-      letter-spacing: 0.5px;
-    }
+    .drop-zone.active-hover { filter: brightness(1.22); outline: 4px solid #ffffff; z-index: 5; }
+    .zone-hadkan.active-hover { transform: scale(1.03); border-style: solid; border-color: #ffffff; }
+    .drop-zone.hint-correct { animation: hintPulse 0.45s ease-in-out 6 alternate; outline: 5px solid #facc15; z-index: 6; }
+    @keyframes hintPulse { from { filter: brightness(1); } to { filter: brightness(1.5); } }
 
-    .stat-value {
-      font-size: 1.3rem;
-      font-weight: 800;
-      color: #ffffff;
-    }
-
-    .btn-control {
-      background: #334155;
-      color: #f8fafc;
-      border: 1px solid #475569;
-      padding: 8px 14px;
-      border-radius: 8px;
-      cursor: pointer;
-      font-weight: 600;
-      font-size: 0.8rem;
-      transition: background 0.15s;
-    }
-
-    .btn-control:hover {
-      background: #475569;
-    }
-
-    .btn-report {
-      background: rgba(56, 189, 248, 0.15);
-      border-color: var(--accent);
-      color: var(--accent);
-    }
-
-    /* Arahan Baris Nipis */
-    .instruction-banner {
-      background: rgba(15, 23, 42, 0.92);
-      padding: 6px 18px;
-      border-radius: 20px;
-      font-size: 0.88rem;
-      color: #e2e8f0;
-      border: 1px solid rgba(56, 189, 248, 0.35);
-      text-align: center;
-      font-weight: 600;
-      width: fit-content;
-      margin: 0 auto;
-      flex-shrink: 0;
-    }
-
-    /* Kawasan Utama: Pinggan Gergasi (Kiri/Tengah) + Panel Ambil & Zon Merah (Kanan) */
-    .main-arena {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      gap: 34px;
-      flex: 1;
-      min-height: 0;
-      padding-bottom: 6px;
-    }
-
-    /* Bingkai Luar Pinggan Bulat Gergasi */
-    .plate-outer-rim {
-      width: min(74vh, 56vw, 590px);
-      height: min(74vh, 56vw, 590px);
-      border-radius: 50%;
-      background: radial-gradient(circle, #ffffff 62%, #cbd5e1 100%);
-      padding: 18px;
-      box-shadow: 
-        0 22px 50px rgba(0,0,0,0.7),
-        inset 0 4px 12px rgba(255,255,255,0.95),
-        inset 0 -6px 16px rgba(15, 23, 42, 0.4);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      position: relative;
-      flex-shrink: 0;
-    }
-
-    /* Bahagian Dalam Pinggan Bulat (Suku-Suku-Separuh) */
-    #real-plate {
-      width: 100%;
-      height: 100%;
-      border-radius: 50%;
-      overflow: hidden;
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      grid-template-rows: 1fr 1fr;
-      background: #0f172a;
-      border: 5px solid #94a3b8;
-      position: relative;
-    }
-
-    .plate-section {
-      position: relative;
-      display: flex;
-      flex-direction: column;
-      text-align: center;
-      transition: filter 0.15s, background-color 0.15s;
-    }
-
-    /*
-     * PELARASAN GEOMETRI SUKU BULATAN:
-     * Menolak kandungan sedikit ke arah tengah pinggan supaya tidak terpotong oleh lengkungan tepi.
-     */
-
-    /* Suku Pertama: Karbohidrat (Kiri Atas) */
-    .zone-karbo {
-      grid-column: 1;
-      grid-row: 1;
-      background: linear-gradient(135deg, rgba(234, 179, 8, 0.92), rgba(161, 98, 7, 0.95));
-      border-right: 6px solid var(--plate-rim);
-      border-bottom: 6px solid var(--plate-rim);
-      justify-content: flex-end;
-      align-items: center;
-      padding: 20% 8% 11% 20%;
-    }
-
-    /* Suku Kedua: Protein - Warna Coklat (Kiri Bawah) */
-    .zone-protein {
-      grid-column: 1;
-      grid-row: 2;
-      background: linear-gradient(45deg, rgba(146, 64, 14, 0.95), rgba(180, 83, 9, 0.93));
-      border-right: 6px solid var(--plate-rim);
-      border-top: 6px solid var(--plate-rim);
-      justify-content: flex-start;
-      align-items: center;
-      padding: 11% 8% 20% 20%;
-    }
-
-    /* Separuh: Sayur & Buah (Kanan Penuh) */
-    .zone-sayur {
-      grid-column: 2;
-      grid-row: 1 / span 2;
-      background: linear-gradient(90deg, rgba(5, 150, 105, 0.94), rgba(16, 185, 129, 0.92));
-      border-left: 6px solid var(--plate-rim);
-      justify-content: center;
-      align-items: center;
-      padding: 12% 16% 12% 6%;
-    }
-
-    /* Lajur Kanan: Tempat Ambil Makanan + Zon Merah Luar Pinggan */
-    .side-column {
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-      gap: 18px;
-      width: 280px;
-      height: min(74vh, 56vw, 590px);
-      flex-shrink: 0;
-    }
-
-    .spawn-box-wrapper {
-      background: var(--card-bg);
-      border: 2px solid rgba(56, 189, 248, 0.4);
-      border-radius: 22px;
-      padding: 14px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      height: 36%;
-      min-height: 140px;
-    }
-
-    .spawn-label-top {
-      font-size: 0.75rem;
-      font-weight: 800;
-      text-transform: uppercase;
-      color: var(--accent);
-      margin-bottom: 8px;
-      letter-spacing: 0.5px;
-    }
-
-    #spawn-slot {
-      width: 100%;
-      flex: 1;
-      border: 2px dashed rgba(255,255,255,0.35);
-      border-radius: 14px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: #94a3b8;
-      font-size: 0.85rem;
-      font-weight: 600;
-      background: rgba(15, 23, 42, 0.5);
-    }
-
-    /* Zon Luar Pinggan: Warna Merah Amaran */
-    .zone-hadkan {
-      flex: 1;
-      background: linear-gradient(160deg, rgba(220, 38, 38, 0.94), rgba(153, 27, 27, 0.96));
-      border: 4px dashed #fca5a5;
-      border-radius: 24px;
-      padding: 20px 16px;
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-      align-items: center;
-      text-align: center;
-      box-shadow: 0 16px 35px rgba(239, 68, 68, 0.35);
-      transition: transform 0.15s, border-color 0.15s, filter 0.15s;
-      position: relative;
-      overflow: hidden;
-    }
-
-    /* Kad Makanan yang Boleh Digerakkan */
-    #food-card {
-      position: fixed;
-      width: 235px;
-      padding: 12px 16px;
-      background: #ffffff;
-      color: #0f172a;
-      border-radius: 14px;
-      box-shadow: 0 14px 30px rgba(0,0,0,0.6);
-      text-align: center;
-      z-index: 60;
-      pointer-events: none;
-      transform: translate(-50%, -50%);
-      transition: transform 0.08s ease-out, box-shadow 0.2s;
-      border: 4px solid var(--accent);
-    }
-
-    #food-card.attached {
-      border-color: #facc15;
-      box-shadow: 0 0 28px rgba(250, 204, 21, 0.9);
-      transform: translate(-50%, -50%) scale(1.06);
-    }
-
-    .food-name {
-      font-size: 1.12rem;
-      font-weight: 800;
-      margin-bottom: 3px;
-      line-height: 1.25;
-    }
-
-    .food-hint {
-      font-size: 0.75rem;
-      color: #475569;
-      font-weight: 700;
-    }
-
-    /* Kesan Menyala Bila Tangan Berada Di Atas Zon */
-    .drop-zone.active-hover {
-      filter: brightness(1.22);
-      outline: 4px solid #ffffff;
-      z-index: 5;
-    }
-
-    .zone-hadkan.active-hover {
-      transform: scale(1.03);
-      border-style: solid;
-      border-color: #ffffff;
-    }
-
-    /* Tipografi Dalam Pinggan (Dijamin Muat & Tidak Terpotong) */
-    .zone-badge {
-      display: inline-block;
-      padding: 3px 10px;
-      border-radius: 12px;
-      font-size: clamp(0.62rem, 1.1vw, 0.78rem);
-      font-weight: 900;
-      text-transform: uppercase;
-      letter-spacing: 0.4px;
-      margin-bottom: 4px;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.3);
-      white-space: nowrap;
-    }
-
+    .zone-badge { display: inline-block; padding: 3px 10px; border-radius: 12px; font-size: clamp(0.62rem, 1.1vw, 0.78rem); font-weight: 900;
+      text-transform: uppercase; letter-spacing: 0.4px; margin-bottom: 4px; box-shadow: 0 2px 6px rgba(0,0,0,0.3); white-space: nowrap; }
     .zone-karbo .zone-badge { background: #fef08a; color: #713f12; }
     .zone-protein .zone-badge { background: #fed7aa; color: #7c2d12; }
     .zone-sayur .zone-badge { background: #a7f3d0; color: #064e3b; }
     .zone-hadkan .zone-badge { background: #ffffff; color: #b91c1c; }
+    .zone-title { font-size: clamp(1rem, 1.8vw, 1.45rem); font-weight: 900; color: #ffffff; text-shadow: 0 2px 4px rgba(0,0,0,0.5); line-height: 1.15; }
+    .zone-desc { font-size: clamp(0.7rem, 1.15vw, 0.88rem); color: #f8fafc; margin-top: 4px; line-height: 1.25; font-weight: 600; max-width: 92%; }
 
-    .zone-title {
-      font-size: clamp(1rem, 1.8vw, 1.45rem);
-      font-weight: 900;
-      color: #ffffff;
-      text-shadow: 0 2px 4px rgba(0,0,0,0.5);
-      line-height: 1.15;
-    }
+    /* Bar masa tahan: hanya dipapar dalam mod "tahan" */
+    .dwell-bar-bg { width: 68%; max-width: 145px; height: 10px; background: rgba(0,0,0,0.5); border-radius: 6px; overflow: hidden;
+      margin-top: 8px; border: 1px solid rgba(255,255,255,0.45); flex-shrink: 0; }
+    .dwell-bar-fill { width: 0%; height: 100%; background: #ffffff; transition: width 0.05s linear; }
+    body.mode-genggam .dwell-bar-bg { visibility: hidden; }
 
-    .zone-desc {
-      font-size: clamp(0.7rem, 1.15vw, 0.88rem);
-      color: #f8fafc;
-      margin-top: 4px;
-      line-height: 1.25;
-      font-weight: 600;
-      max-width: 92%;
-    }
+    /* Makanan yang telah diletak di pinggan */
+    .placed-layer { position: absolute; inset: 0; pointer-events: none; z-index: 4; }
+    .placed-food { position: absolute; font-size: clamp(1.5rem, 3.4vw, 2.5rem); transform: translate(-50%, -50%) scale(0);
+      animation: popIn 0.4s cubic-bezier(.2,1.6,.4,1) forwards; filter: drop-shadow(0 3px 4px rgba(0,0,0,.55)); }
+    @keyframes popIn { to { transform: translate(-50%, -50%) scale(1); } }
 
-    /* Bar Masa Tahan (Dwell Progress Bar) */
-    .dwell-bar-bg {
-      width: 68%;
-      max-width: 145px;
-      height: 10px;
-      background: rgba(0,0,0,0.5);
-      border-radius: 6px;
-      overflow: hidden;
-      margin-top: 8px;
-      border: 1px solid rgba(255,255,255,0.45);
-      flex-shrink: 0;
-    }
+    /* Kursor tangan */
+    #hand-cursor { position: fixed; width: 54px; height: 54px; border-radius: 50%; border: 4px solid #38bdf8; background: rgba(56, 189, 248, 0.28);
+      transform: translate(-50%, -50%); pointer-events: none; z-index: 400; display: flex; align-items: center; justify-content: center;
+      box-shadow: 0 0 16px rgba(56, 189, 248, 0.85); font-size: 1.6rem; transition: background 0.1s, border-color 0.1s, opacity 0.3s; }
+    #hand-cursor.grabbing { background: rgba(250, 204, 21, 0.75); border-color: #facc15; box-shadow: 0 0 20px rgba(250, 204, 21, 0.9); }
+    #hand-cursor.lost { opacity: 0.25; }
 
-    .dwell-bar-fill {
-      width: 0%;
-      height: 100%;
-      background: #ffffff;
-      transition: width 0.05s linear;
-    }
+    /* Notifikasi maklum balas */
+    #feedback-toast { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0.9); background: rgba(15, 23, 42, 0.96);
+      border: 3px solid var(--accent); padding: 22px 30px; border-radius: 20px; text-align: center; z-index: 200; max-width: 520px; width: 90%;
+      opacity: 0; pointer-events: none; transition: opacity 0.2s, transform 0.2s; box-shadow: 0 20px 50px rgba(0,0,0,0.75); }
+    #feedback-toast.show { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+    .fb-emoji { font-size: 3rem; line-height: 1.1; }
+    .fb-status { font-size: 1.5rem; font-weight: 900; margin-bottom: 6px; }
+    .fb-should { font-size: 1rem; font-weight: 800; color: #facc15; margin-bottom: 8px; }
+    .fb-label { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 1px; color: #38bdf8; font-weight: 900; margin-bottom: 2px; }
+    .fb-fact { font-size: 1.05rem; line-height: 1.45; color: #e2e8f0; }
 
-    /* Kursor Tangan / Sentuhan */
-    #hand-cursor {
-      position: fixed;
-      width: 44px;
-      height: 44px;
-      border-radius: 50%;
-      border: 4px solid #38bdf8;
-      background: rgba(56, 189, 248, 0.28);
-      transform: translate(-50%, -50%);
-      pointer-events: none;
-      z-index: 100;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      box-shadow: 0 0 16px rgba(56, 189, 248, 0.85);
-    }
+    /* Modal */
+    .modal-overlay { position: fixed; inset: 0; background: rgba(15, 23, 42, 0.92); z-index: 300; display: none; align-items: center; justify-content: center; padding: 20px; }
+    .modal-box { background: #1e293b; border: 2px solid #38bdf8; border-radius: 24px; padding: 28px; max-width: 560px; width: 100%; text-align: center; max-height: 94vh; overflow: auto; }
+    .modal-title { font-size: 1.7rem; font-weight: 800; color: #38bdf8; margin-bottom: 10px; }
+    .modal-score { font-size: 2.8rem; font-weight: 900; margin: 10px 0; color: #facc15; }
+    .end-plate { font-size: 1.7rem; letter-spacing: 3px; margin: 6px 0 4px; }
+    .recap { background: #0f172a; border-radius: 12px; padding: 12px 16px; margin-top: 12px; text-align: left; font-size: 0.92rem; line-height: 1.55; color: #cbd5e1; }
+    .recap b { color: #facc15; }
+    .btn-primary { position: relative; overflow: hidden; background: #38bdf8; color: #0f172a; font-weight: 800; font-size: 1.1rem; padding: 15px 30px;
+      border: none; border-radius: 12px; cursor: pointer; margin-top: 18px; }
+    .btn-primary .dwell-fill { position: absolute; left: 0; top: 0; bottom: 0; width: 0%; background: rgba(255,255,255,0.55); pointer-events: none; }
+    .btn-primary span { position: relative; }
+    .hand-tip { font-size: 0.8rem; color: #94a3b8; margin-top: 6px; }
+    .btn-danger { background: #ef4444; color: #ffffff; font-weight: 700; font-size: 0.9rem; padding: 10px 18px; border: none; border-radius: 10px; cursor: pointer; margin-top: 12px; }
+    .report-summary { background: #0f172a; padding: 16px; border-radius: 12px; margin: 16px 0; text-align: left; font-size: 0.95rem; line-height: 1.6; color: #cbd5e1; }
 
-    #hand-cursor::after {
-      content: "";
-      width: 10px;
-      height: 10px;
-      background: #ffffff;
-      border-radius: 50%;
-    }
-
-    /* Notifikasi Maklum Balas (Betul / Salah) */
-    #feedback-toast {
-      position: fixed;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%) scale(0.9);
-      background: rgba(15, 23, 42, 0.96);
-      border: 3px solid var(--accent);
-      padding: 24px 30px;
-      border-radius: 20px;
-      text-align: center;
-      z-index: 200;
-      max-width: 480px;
-      width: 90%;
-      opacity: 0;
-      pointer-events: none;
-      transition: opacity 0.2s, transform 0.2s;
-      box-shadow: 0 20px 50px rgba(0,0,0,0.75);
-    }
-
-    #feedback-toast.show {
-      opacity: 1;
-      transform: translate(-50%, -50%) scale(1);
-    }
-
-    .fb-status {
-      font-size: 1.5rem;
-      font-weight: 900;
-      margin-bottom: 8px;
-    }
-
-    .fb-fact {
-      font-size: 1.02rem;
-      line-height: 1.45;
-      color: #e2e8f0;
-    }
-
-    /* Modal Tamat & Modal Laporan */
-    .modal-overlay {
-      position: fixed;
-      inset: 0;
-      background: rgba(15, 23, 42, 0.92);
-      z-index: 300;
-      display: none;
-      align-items: center;
-      justify-content: center;
-      padding: 20px;
-    }
-
-    .modal-box {
-      background: #1e293b;
-      border: 2px solid #38bdf8;
-      border-radius: 24px;
-      padding: 30px;
-      max-width: 520px;
-      width: 100%;
-      text-align: center;
-    }
-
-    .modal-title {
-      font-size: 1.7rem;
-      font-weight: 800;
-      color: #38bdf8;
-      margin-bottom: 10px;
-    }
-
-    .modal-score {
-      font-size: 2.8rem;
-      font-weight: 900;
-      margin: 14px 0;
-      color: #facc15;
-    }
-
-    .btn-primary {
-      background: #38bdf8;
-      color: #0f172a;
-      font-weight: 800;
-      font-size: 1.05rem;
-      padding: 13px 26px;
-      border: none;
-      border-radius: 12px;
-      cursor: pointer;
-      margin-top: 18px;
-    }
-
-    .btn-danger {
-      background: #ef4444;
-      color: #ffffff;
-      font-weight: 700;
-      font-size: 0.9rem;
-      padding: 10px 18px;
-      border: none;
-      border-radius: 10px;
-      cursor: pointer;
-      margin-top: 12px;
-    }
-
-    .report-summary {
-      background: #0f172a;
-      padding: 16px;
-      border-radius: 12px;
-      margin: 16px 0;
-      text-align: left;
-      font-size: 0.95rem;
-      line-height: 1.6;
-      color: #cbd5e1;
-    }
-
-    /* Responsif untuk Skrin Sempit / Potret */
     @media (max-width: 860px) {
-      .main-arena {
-        flex-direction: column;
-        gap: 14px;
-      }
-      .plate-outer-rim {
-        width: min(50vh, 84vw, 400px);
-        height: min(50vh, 84vw, 400px);
-        padding: 12px;
-      }
-      .side-column {
-        flex-direction: row;
-        width: 92vw;
-        height: 140px;
-      }
-      .spawn-box-wrapper {
-        height: 100%;
-        width: 48%;
-      }
-      .zone-hadkan {
-        height: 100%;
-        padding: 12px;
-      }
+      .main-arena { flex-direction: column; gap: 14px; }
+      .plate-outer-rim { width: min(50vh, 84vw, 400px); height: min(50vh, 84vw, 400px); padding: 12px; }
+      .side-column { flex-direction: row; width: 92vw; height: 150px; }
+      .spawn-box-wrapper { height: 100%; width: 48%; min-height: 0; }
+      .zone-hadkan { height: 100%; padding: 12px; }
     }
   </style>
 </head>
-<body>
+<body class="mode-genggam">
 
-  <!-- Latar Belakang Video Kamera -->
-  <video id="webcam-video" playsinline></video>
+  <video id="webcam-video" playsinline muted></video>
+  <div id="hand-cursor">✋</div>
 
-  <!-- Kursor Tangan -->
-  <div id="hand-cursor"></div>
-
-  <!-- Kad Makanan -->
   <div id="food-card">
+    <div class="food-emoji" id="food-emoji-text">🍽️</div>
     <div class="food-name" id="food-name-text">Memuatkan...</div>
-    <div class="food-hint" id="food-hint-text">Sentuh untuk ambil</div>
+    <div class="food-hint" id="food-hint-text">Genggam untuk ambil</div>
   </div>
 
-  <!-- Antaramuka Utama -->
   <div id="game-layer">
     <div class="top-bar">
       <div>
@@ -596,556 +171,472 @@
         <div class="privacy-note" id="cam-status">Mencari kamera... (Boleh juga guna sentuhan skrin/tetikus). Tiada video dirakam.</div>
       </div>
       <div class="stats-box">
-        <div class="stat-item">
-          <div class="stat-label">Soalan</div>
-          <div class="stat-value" id="q-counter">1 / 10</div>
-        </div>
-        <div class="stat-item">
-          <div class="stat-label">Markah</div>
-          <div class="stat-value" id="score-val">0</div>
-        </div>
-        <button class="btn-control btn-report" id="btn-open-report" onclick="openReportModal()">Laporan (0)</button>
-        <button class="btn-control" onclick="resetGame()">Mula Semula</button>
+        <div class="stat-item"><div class="stat-label">Soalan</div><div class="stat-value" id="q-counter">1 / 10</div></div>
+        <div class="stat-item"><div class="stat-label">Markah</div><div class="stat-value" id="score-val">0</div></div>
+        <div class="stat-item"><div class="stat-label">Berturut</div><div class="stat-value stat-streak" id="streak-val">0</div></div>
+        <button class="btn-control" id="btn-mode" title="Kekunci G">Mod: Genggam</button>
+        <button class="btn-control btn-report" id="btn-open-report">Laporan (0)</button>
+        <button class="btn-control" id="btn-reset">Mula Semula</button>
       </div>
     </div>
 
-    <div class="instruction-banner" id="guide-text">
-      Langkah 1: Halakan tapak tangan pada kad makanan di kotak kanan atas untuk mengambilnya.
-    </div>
+    <div class="instruction-banner" id="guide-text">Langkah 1: Bawa tangan ke kad makanan, kemudian GENGGAM untuk ambil.</div>
 
-    <!-- Arena Utama: Pinggan Bulat Gergasi + Panel Kanan -->
     <div class="main-arena">
-      
-      <!-- Pinggan Bulat Suku Suku Separuh (Saiz Gergasi) -->
       <div class="plate-outer-rim">
         <div id="real-plate">
-          
-          <!-- Suku 1: Karbohidrat (Kiri Atas) -->
           <div class="plate-section drop-zone zone-karbo" data-zone="KARBO">
             <span class="zone-badge">Suku (25%)</span>
             <div class="zone-title">Karbohidrat</div>
             <div class="zone-desc">Nasi, mi, roti, bijirin, ubi</div>
             <div class="dwell-bar-bg"><div class="dwell-bar-fill"></div></div>
           </div>
-
-          <!-- Suku 2: Protein (Kiri Bawah - Warna Coklat) -->
           <div class="plate-section drop-zone zone-protein" data-zone="PROTEIN">
             <span class="zone-badge">Suku (25%)</span>
             <div class="zone-title">Protein</div>
             <div class="zone-desc">Ikan, ayam, telur, kekacang, tauhu</div>
             <div class="dwell-bar-bg"><div class="dwell-bar-fill"></div></div>
           </div>
-
-          <!-- Separuh: Sayur & Buah (Kanan Penuh - Warna Hijau) -->
           <div class="plate-section drop-zone zone-sayur" data-zone="SAYUR">
             <span class="zone-badge">Separuh (50%)</span>
             <div class="zone-title">Sayur & Buah</div>
             <div class="zone-desc">Sayuran hijau, ulam-ulaman & buah segar</div>
             <div class="dwell-bar-bg"><div class="dwell-bar-fill"></div></div>
           </div>
-
+          <div class="placed-layer" id="placed-layer"></div>
         </div>
       </div>
 
-      <!-- Lajur Kanan: Kotak Ambil Makanan + Zon Merah Luar Pinggan -->
       <div class="side-column">
         <div class="spawn-box-wrapper">
           <div class="spawn-label-top">1. Ambil Makanan Di Sini</div>
           <div id="spawn-slot">Tempat Kad Makanan</div>
         </div>
-
-        <!-- Zon Luar Pinggan: Warna Merah Amaran -->
         <div class="drop-zone zone-hadkan" id="hadkan-box" data-zone="HADKAN">
           <div>
             <span class="zone-badge">Luar Pinggan (Zon Merah)</span>
             <div class="zone-title" style="margin-top: 8px;">Hadkan / Elakkan!</div>
-            <div class="zone-desc" style="max-width: 100%; margin-top: 6px;">
-              Makanan & minuman tinggi gula, garam atau lemak tepu
-            </div>
+            <div class="zone-desc" style="max-width: 100%; margin-top: 6px;">Makanan & minuman tinggi gula, garam atau lemak tepu</div>
           </div>
+          <div id="hadkan-stack"></div>
           <div class="dwell-bar-bg" style="width: 88%; max-width: none;"><div class="dwell-bar-fill"></div></div>
         </div>
       </div>
-
     </div>
   </div>
 
-  <!-- Notifikasi Maklum Balas -->
   <div id="feedback-toast">
+    <div class="fb-emoji" id="fb-emoji-text"></div>
     <div class="fb-status" id="fb-status-text">TEPAT SEKALI!</div>
+    <div class="fb-should" id="fb-should-text"></div>
+    <div class="fb-label">Tahukah anda?</div>
     <div class="fb-fact" id="fb-fact-text">Info pemakanan di sini.</div>
   </div>
 
-  <!-- Modal Tamat Permainan -->
   <div class="modal-overlay" id="end-modal">
     <div class="modal-box">
       <div class="modal-title">Tahniah, Cabaran Selesai!</div>
       <p style="color: #cbd5e1;">Skor Keseluruhan Anda:</p>
       <div class="modal-score" id="final-score">100 / 100</div>
+      <div style="color:#94a3b8;font-size:.85rem;">Pinggan yang anda susun:</div>
+      <div class="end-plate" id="end-plate"></div>
       <p id="final-message" style="color: #e2e8f0; line-height: 1.5;"></p>
-      <button class="btn-primary" onclick="resetGame()">Main Lagi (Pemain Seterusnya)</button>
+      <div class="recap" id="recap-box" style="display:none;"></div>
+      <button class="btn-primary" id="btn-play-again"><div class="dwell-fill" id="again-fill"></div><span>Main Lagi (Pemain Seterusnya)</span></button>
+      <div class="hand-tip">Letak tangan di atas butang untuk main semula · Kembali sendiri dalam <span id="auto-reset-sec">30</span> saat</div>
     </div>
   </div>
 
-  <!-- Modal Laporan Output Program (Pegawai) -->
   <div class="modal-overlay" id="report-modal">
     <div class="modal-box">
       <div class="modal-title">Rekod Output Permainan</div>
       <p style="color: #94a3b8; font-size: 0.88rem;">Data disimpan secara tempatan di dalam peranti ini.</p>
-      <div class="report-summary" id="report-summary-box">
-        Memuatkan statistik...
-      </div>
+      <div class="report-summary" id="report-summary-box">Memuatkan statistik...</div>
       <div style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
-        <button class="btn-primary" style="margin-top: 0;" onclick="downloadCSVReport()">Muat Turun CSV (Excel)</button>
-        <button class="btn-control" style="padding: 13px 20px;" onclick="closeReportModal()">Tutup</button>
+        <button class="btn-primary" style="margin-top: 0; font-size: .95rem; padding: 12px 18px;" id="btn-csv">CSV Pemain</button>
+        <button class="btn-primary" style="margin-top: 0; font-size: .95rem; padding: 12px 18px;" id="btn-csv-food">CSV Analisis Makanan</button>
+        <button class="btn-control" style="padding: 13px 20px;" id="btn-close-report">Tutup</button>
       </div>
-      <div style="margin-top: 16px;">
-        <button class="btn-danger" onclick="clearLocalRecords()">Padam Semua Rekod (Reset Program Baru)</button>
-      </div>
+      <div style="margin-top: 16px;"><button class="btn-danger" id="btn-clear">Padam Semua Rekod (Reset Program Baru)</button></div>
     </div>
   </div>
 
-  <script>
-    // --- 1. BANK SOALAN MAKANAN MALAYSIA ---
+  <script type="module">
+    import { FilesetResolver, HandLandmarker } from "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/vision_bundle.mjs";
+
+    /* ================= TETAPAN ================= */
+    const JUMLAH_SOALAN = 10;
+    const TOAST_MS = 3100;           // tempoh paparan fakta
+    const DWELL_DURATION = 800;      // mod "tahan": masa tahan atas zon (ms)
+    const AGAIN_DWELL_MS = 1500;     // tahan tangan atas butang Main Lagi
+    const AUTO_RESET_S = 30;         // skrin tamat kembali sendiri
+    const IDLE_RESET_S = 90;         // permainan separuh jalan direset jika tiada pemain
+    const CAM_MARGIN = 0.12;         // kawasan tepi kamera yang diabaikan, supaya tak perlu hulur tangan ke hujung
+    let CONTROL = 'genggam';         // 'genggam' (genggam/cubit & lepas) atau 'tahan' (hover & tahan, cara asal)
+
+    const ZONE_NAME = { KARBO: 'Karbohidrat (Suku)', PROTEIN: 'Protein (Suku)', SAYUR: 'Sayur & Buah (Separuh)', HADKAN: 'Zon Merah (Hadkan)' };
+
+    /* ================= 1. BANK SOALAN ================= */
     const FOOD_BANK = [
-      { name: "Nasi Putih (1 Senduk)", category: "KARBO", fact: "Satu senduk nasi memenuhi bahagian SUKU karbohidrat untuk membekalkan tenaga harian." },
-      { name: "Roti Mil Penuh (2 Keping)", category: "KARBO", fact: "Bijirin penuh tinggi serat, membantu kita kenyang lebih lama dan mengawal paras gula." },
-      { name: "Ubi Keledek Rebus", category: "KARBO", fact: "Ubi keledek adalah sumber karbohidrat kompleks yang kaya dengan serat dan vitamin." },
-      { name: "Bihun & Mi Kuning", category: "KARBO", fact: "Mi dan bihun tergolong dalam kumpulan karbohidrat. Ambil dalam saiz SUKU pinggan." },
-      { name: "Ikan Kembung Bakar", category: "PROTEIN", fact: "Ikan adalah sumber protein berkualiti tinggi dan kaya dengan asid lemak baik Omega-3." },
-      { name: "Tempe & Tauhu Panggang", category: "PROTEIN", fact: "Sumber protein tumbuhan yang sangat baik, rendah lemak tepu dan kaya dengan nutrisi." },
-      { name: "Ayam Masak Singgang", category: "PROTEIN", fact: "Masakan rebus atau singgang mengekalkan khasiat protein tanpa tambahan minyak berlebihan." },
-      { name: "Telur Rebus (1 Biji)", category: "PROTEIN", fact: "Telur adalah sumber protein lengkap yang mudah disediakan dan mengenyangkan." },
-      { name: "Sayur Sawi & Lobak", category: "SAYUR", fact: "Sayuran perlu memenuhi SEPARUH pinggan untuk bekalan serat, vitamin dan mineral." },
-      { name: "Buah Betik & Jambu Batu", category: "SAYUR", fact: "Buah-buahan segar melengkapkan bahagian separuh pinggan dan kaya dengan Vitamin C." },
-      { name: "Ulam Raja & Timun", category: "SAYUR", fact: "Ulam-ulaman segar sangat bagus kerana tiada tambahan minyak, gula atau garam." },
-      { name: "Bayam & Kangkung Tumis Air", category: "SAYUR", fact: "Sayuran hijau gelap kaya dengan zat besi dan folat untuk kesihatan tubuh." },
-      { name: "Air Berkarbonat / Tin", category: "HADKAN", fact: "Satu tin minuman manis mengandungi sekitar 7 hingga 9 sudu teh gula tersembunyi! Letak di Zon Merah." },
-      { name: "Sosej & Nuget Goreng", category: "HADKAN", fact: "Makanan ultra-proses tinggi kandungan garam (natrium) dan lemak tepu. Perlu dihadkan." },
-      { name: "Keropok Segera Masin", category: "HADKAN", fact: "Tinggi kandungan garam dan perisa tambahan yang meningkatkan risiko tekanan darah tinggi." }
+      { emoji: "🍚", name: "Nasi Putih (1 Senduk)", category: "KARBO", fact: "Satu senduk nasi memenuhi bahagian SUKU karbohidrat untuk membekalkan tenaga harian." },
+      { emoji: "🍞", name: "Roti Mil Penuh (2 Keping)", category: "KARBO", fact: "Bijirin penuh tinggi serat, membantu kita kenyang lebih lama dan mengawal paras gula." },
+      { emoji: "🍠", name: "Ubi Keledek Rebus", category: "KARBO", fact: "Ubi keledek adalah sumber karbohidrat kompleks yang kaya dengan serat dan vitamin." },
+      { emoji: "🍜", name: "Bihun & Mi Kuning", category: "KARBO", fact: "Mi dan bihun tergolong dalam kumpulan karbohidrat. Ambil dalam saiz SUKU pinggan." },
+      { emoji: "🥔", name: "Kentang Rebus", category: "KARBO", fact: "Ramai sangka kentang itu sayur! Kentang ialah ubi-ubian dan tergolong dalam kumpulan karbohidrat." },
+      { emoji: "🐟", name: "Ikan Kembung Bakar", category: "PROTEIN", fact: "Ikan adalah sumber protein berkualiti tinggi dan kaya dengan asid lemak baik Omega-3." },
+      { emoji: "🍢", name: "Tempe & Tauhu Panggang", category: "PROTEIN", fact: "Sumber protein tumbuhan yang sangat baik, rendah lemak tepu dan kaya dengan nutrisi." },
+      { emoji: "🍗", name: "Ayam Masak Singgang", category: "PROTEIN", fact: "Masakan rebus atau singgang mengekalkan khasiat protein tanpa tambahan minyak berlebihan." },
+      { emoji: "🥚", name: "Telur Rebus (1 Biji)", category: "PROTEIN", fact: "Telur adalah sumber protein lengkap yang mudah disediakan dan mengenyangkan." },
+      { emoji: "🍲", name: "Kuah Dal (Kacang Dal)", category: "PROTEIN", fact: "Kacang dal ialah kekacang yang kaya protein dan serat. Pilihan protein tumbuhan yang murah." },
+      { emoji: "🥕", name: "Sayur Sawi & Lobak", category: "SAYUR", fact: "Sayuran perlu memenuhi SEPARUH pinggan untuk bekalan serat, vitamin dan mineral." },
+      { emoji: "🥭", name: "Buah Betik & Jambu Batu", category: "SAYUR", fact: "Buah-buahan segar melengkapkan bahagian separuh pinggan dan kaya dengan Vitamin C." },
+      { emoji: "🥒", name: "Ulam Raja & Timun", category: "SAYUR", fact: "Ulam-ulaman segar sangat bagus kerana tiada tambahan minyak, gula atau garam." },
+      { emoji: "🥬", name: "Bayam & Kangkung Tumis Air", category: "SAYUR", fact: "Sayuran hijau gelap kaya dengan zat besi dan folat untuk kesihatan tubuh." },
+      { emoji: "🥗", name: "Kacang Panjang & Buncis", category: "SAYUR", fact: "Walaupun namanya 'kacang', kacang panjang dan buncis ialah sayur. Letak di bahagian sayur!" },
+      { emoji: "🥤", name: "Air Berkarbonat / Tin", category: "HADKAN", fact: "Satu tin minuman manis mengandungi sekitar 7 hingga 9 sudu teh gula tersembunyi! Letak di Zon Merah." },
+      { emoji: "🌭", name: "Sosej & Nuget Goreng", category: "HADKAN", fact: "Makanan ultra-proses tinggi kandungan garam (natrium) dan lemak tepu. Perlu dihadkan." },
+      { emoji: "🍘", name: "Keropok Segera Masin", category: "HADKAN", fact: "Tinggi kandungan garam dan perisa tambahan yang meningkatkan risiko tekanan darah tinggi." },
+      { emoji: "☕", name: "Teh Tarik Manis", category: "HADKAN", fact: "Minuman manis menambah gula tanpa kita sedar. Minta 'kurang manis' atau pilih air kosong." },
+      { emoji: "🍩", name: "Kuih Goreng & Donut", category: "HADKAN", fact: "Tinggi gula dan minyak. Nikmati sekali-sekala dalam saiz kecil, bukan setiap hari." },
     ];
 
-    // --- 2. PENJANA BUNYI (WEB AUDIO API TANPA FAIL MP3) ---
+    /* ================= 2. BUNYI ================= */
     let audioCtx = null;
     function playSound(type) {
       try {
-        if (!audioCtx) {
-          audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        }
-        if (audioCtx.state === 'suspended') {
-          audioCtx.resume();
-        }
-        const osc = audioCtx.createOscillator();
-        const gain = audioCtx.createGain();
-        osc.connect(gain);
-        gain.connect(audioCtx.destination);
-
+        if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+        const osc = audioCtx.createOscillator(), gain = audioCtx.createGain();
+        osc.connect(gain); gain.connect(audioCtx.destination);
         const now = audioCtx.currentTime;
         if (type === 'pickup') {
-          osc.type = 'sine';
-          osc.frequency.setValueAtTime(520, now);
-          osc.frequency.exponentialRampToValueAtTime(680, now + 0.08);
-          gain.gain.setValueAtTime(0.15, now);
-          gain.gain.linearRampToValueAtTime(0.01, now + 0.08);
-          osc.start(now);
-          osc.stop(now + 0.08);
+          osc.type = 'sine'; osc.frequency.setValueAtTime(520, now); osc.frequency.exponentialRampToValueAtTime(680, now + 0.08);
+          gain.gain.setValueAtTime(0.15, now); gain.gain.linearRampToValueAtTime(0.01, now + 0.08); osc.start(now); osc.stop(now + 0.08);
         } else if (type === 'correct') {
-          osc.type = 'triangle';
-          osc.frequency.setValueAtTime(523.25, now);
-          osc.frequency.setValueAtTime(659.25, now + 0.1);
-          osc.frequency.setValueAtTime(783.99, now + 0.2);
-          gain.gain.setValueAtTime(0.25, now);
-          gain.gain.linearRampToValueAtTime(0.01, now + 0.45);
-          osc.start(now);
-          osc.stop(now + 0.45);
+          osc.type = 'triangle'; osc.frequency.setValueAtTime(523.25, now); osc.frequency.setValueAtTime(659.25, now + 0.1); osc.frequency.setValueAtTime(783.99, now + 0.2);
+          gain.gain.setValueAtTime(0.25, now); gain.gain.linearRampToValueAtTime(0.01, now + 0.45); osc.start(now); osc.stop(now + 0.45);
         } else if (type === 'wrong') {
-          osc.type = 'sawtooth';
-          osc.frequency.setValueAtTime(220, now);
-          osc.frequency.linearRampToValueAtTime(150, now + 0.3);
-          gain.gain.setValueAtTime(0.2, now);
-          gain.gain.linearRampToValueAtTime(0.01, now + 0.35);
-          osc.start(now);
-          osc.stop(now + 0.35);
+          osc.type = 'sawtooth'; osc.frequency.setValueAtTime(220, now); osc.frequency.linearRampToValueAtTime(150, now + 0.3);
+          gain.gain.setValueAtTime(0.2, now); gain.gain.linearRampToValueAtTime(0.01, now + 0.35); osc.start(now); osc.stop(now + 0.35);
+        } else if (type === 'drop') {
+          osc.type = 'sine'; osc.frequency.setValueAtTime(400, now); osc.frequency.exponentialRampToValueAtTime(260, now + 0.12);
+          gain.gain.setValueAtTime(0.12, now); gain.gain.linearRampToValueAtTime(0.01, now + 0.12); osc.start(now); osc.stop(now + 0.12);
         }
       } catch (e) {}
     }
 
-    // --- 3. PEMBOLEHUBAH PERMAINAN ---
-    let questions = [];
-    let currentIndex = 0;
-    let score = 0;
-    let isAttached = false;
-    let isProcessingFeedback = false;
+    /* ================= 3. PEMBOLEHUBAH ================= */
+    let questions = [], answers = [], currentIndex = 0, score = 0, streak = 0;
+    let isAttached = false, isProcessingFeedback = false, needRelease = false;
     let activeControlMode = "Sentuhan / Tetikus";
+    let currentX = window.innerWidth / 2, currentY = window.innerHeight / 2;
+    let activeZoneEl = null, dwellStartTime = 0;
+    let endShownAt = 0, againHoverStart = 0, lastActivity = performance.now(), feedbackTimer = null, toastTimer = null;
 
-    // Koordinat Kursor
-    let targetX = window.innerWidth / 2;
-    let targetY = window.innerHeight / 2;
-    let currentX = targetX;
-    let currentY = targetY;
-
-    // Masa Tahan (Dwell Time = 0.8 saat)
-    const DWELL_DURATION = 800;
-    let activeZoneEl = null;
-    let dwellStartTime = 0;
-
-    // Elemen DOM
-    const cursorEl = document.getElementById('hand-cursor');
-    const foodCardEl = document.getElementById('food-card');
-    const foodNameEl = document.getElementById('food-name-text');
-    const foodHintEl = document.getElementById('food-hint-text');
-    const spawnSlotEl = document.getElementById('spawn-slot');
-    const guideTextEl = document.getElementById('guide-text');
-    const qCounterEl = document.getElementById('q-counter');
-    const scoreValEl = document.getElementById('score-val');
-    const toastEl = document.getElementById('feedback-toast');
-    const fbStatusEl = document.getElementById('fb-status-text');
-    const fbFactEl = document.getElementById('fb-fact-text');
-    const endModalEl = document.getElementById('end-modal');
-    const reportModalEl = document.getElementById('report-modal');
-    const realPlateEl = document.getElementById('real-plate');
-    const hadkanBoxEl = document.getElementById('hadkan-box');
+    const $ = id => document.getElementById(id);
+    const cursorEl = $('hand-cursor'), foodCardEl = $('food-card'), foodNameEl = $('food-name-text'), foodHintEl = $('food-hint-text');
+    const foodEmojiEl = $('food-emoji-text'), spawnSlotEl = $('spawn-slot'), guideTextEl = $('guide-text'), qCounterEl = $('q-counter');
+    const scoreValEl = $('score-val'), streakEl = $('streak-val'), toastEl = $('feedback-toast'), fbStatusEl = $('fb-status-text');
+    const fbFactEl = $('fb-fact-text'), fbEmojiEl = $('fb-emoji-text'), fbShouldEl = $('fb-should-text');
+    const endModalEl = $('end-modal'), reportModalEl = $('report-modal'), realPlateEl = $('real-plate'), hadkanBoxEl = $('hadkan-box');
+    const placedLayerEl = $('placed-layer'), hadkanStackEl = $('hadkan-stack'), againBtnEl = $('btn-play-again'), againFillEl = $('again-fill');
     const dropZones = document.querySelectorAll('.drop-zone');
+    const zoneEl = z => z === 'HADKAN' ? hadkanBoxEl : document.querySelector(`.drop-zone[data-zone="${z}"]`);
 
+    /* Pilih soalan: sekurang-kurangnya satu daripada setiap kategori, selebihnya rawak */
+    function shuffle(a) { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
     function shuffleQuestions() {
-      const copy = [...FOOD_BANK];
-      for (let i = copy.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [copy[i], copy[j]] = [copy[j], copy[i]];
-      }
-      return copy.slice(0, 10);
+      const pool = shuffle([...FOOD_BANK]), picked = [];
+      for (const cat of ['KARBO', 'PROTEIN', 'SAYUR', 'HADKAN']) { const i = pool.findIndex(f => f.category === cat); if (i >= 0) picked.push(...pool.splice(i, 1)); }
+      return shuffle([...picked, ...pool.slice(0, Math.max(0, JUMLAH_SOALAN - picked.length))]);
     }
 
     function resetGame() {
-      questions = shuffleQuestions();
-      currentIndex = 0;
-      score = 0;
-      scoreValEl.textContent = score;
-      endModalEl.style.display = 'none';
+      clearTimeout(feedbackTimer); clearTimeout(toastTimer);
+      questions = shuffleQuestions(); answers = [];
+      currentIndex = 0; score = 0; streak = 0;
+      scoreValEl.textContent = score; streakEl.textContent = streak;
+      placedLayerEl.innerHTML = ''; hadkanStackEl.textContent = '';
+      endModalEl.style.display = 'none'; toastEl.classList.remove('show');
+      dropZones.forEach(z => z.classList.remove('hint-correct'));
+      lastActivity = performance.now();
       loadCurrentFood();
     }
 
+    function slotCenter() { const r = spawnSlotEl.getBoundingClientRect(); return { x: r.left + r.width / 2, y: r.top + r.height / 2 }; }
+    function placeCardAtSlot(animate) {
+      const c = slotCenter();
+      foodCardEl.classList.toggle('returning', !!animate);
+      foodCardEl.style.left = `${c.x}px`; foodCardEl.style.top = `${c.y}px`;
+      if (animate) setTimeout(() => foodCardEl.classList.remove('returning'), 380);
+    }
+    function pickHint() { return CONTROL === 'genggam' ? 'Genggam / cubit untuk ambil' : 'Sentuh untuk ambil'; }
+    function guideStep1() {
+      return CONTROL === 'genggam'
+        ? 'Langkah 1: Bawa tangan ke kad makanan, kemudian GENGGAM untuk ambil.'
+        : 'Langkah 1: Gerakkan tangan ke atas kad makanan di kotak kanan atas untuk mengambilnya.';
+    }
+
     function loadCurrentFood() {
-      if (currentIndex >= questions.length) {
-        showEndScreen();
-        return;
-      }
-
-      isAttached = false;
-      isProcessingFeedback = false;
-      foodCardEl.classList.remove('attached');
-      
-      const currentFood = questions[currentIndex];
-      foodNameEl.textContent = currentFood.name;
-      foodHintEl.textContent = "Sentuh untuk ambil";
+      if (currentIndex >= questions.length) { showEndScreen(); return; }
+      isAttached = false; isProcessingFeedback = false; needRelease = true;
+      foodCardEl.classList.remove('attached', 'hover-ready');
+      const f = questions[currentIndex];
+      foodEmojiEl.textContent = f.emoji; foodNameEl.textContent = f.name; foodHintEl.textContent = pickHint();
       qCounterEl.textContent = `${currentIndex + 1} / ${questions.length}`;
-      guideTextEl.textContent = "Langkah 1: Gerakkan tangan ke atas kad makanan di kotak kanan atas untuk mengambilnya.";
-
-      const slotRect = spawnSlotEl.getBoundingClientRect();
-      foodCardEl.style.left = `${slotRect.left + slotRect.width / 2}px`;
-      foodCardEl.style.top = `${slotRect.top + slotRect.height / 2}px`;
+      guideTextEl.textContent = guideStep1();
+      placeCardAtSlot(false);
       foodCardEl.style.display = 'block';
     }
 
-    /**
-     * Pengesanan Geometri Tepat untuk Pinggan Bulat & Kotak Merah
-     */
+    function attachCard() {
+      isAttached = true; playSound('pickup');
+      foodCardEl.classList.remove('hover-ready'); foodCardEl.classList.add('attached');
+      foodHintEl.textContent = CONTROL === 'genggam' ? 'Lepaskan di pinggan / Zon Merah' : 'Masukkan ke dalam pinggan / Zon Merah';
+      guideTextEl.textContent = CONTROL === 'genggam'
+        ? 'Langkah 2: Bawa ke bahagian pinggan yang betul (atau Zon Merah), kemudian BUKA tangan.'
+        : 'Langkah 2: Bawa makanan ke bahagian pinggan bulat (atau Zon Merah) & tahan sebentar.';
+    }
+    function returnCard(msg) {
+      isAttached = false; needRelease = true; clearAllZones(); playSound('drop');
+      foodCardEl.classList.remove('attached');
+      foodHintEl.textContent = pickHint();
+      guideTextEl.textContent = msg || guideStep1();
+      placeCardAtSlot(true);
+    }
+
     function getHoveredZone(x, y) {
-      // 1. Semak sama ada berada di dalam bulatan pinggan sebenar
-      const plateRect = realPlateEl.getBoundingClientRect();
-      const cx = plateRect.left + plateRect.width / 2;
-      const cy = plateRect.top + plateRect.height / 2;
-      const radius = plateRect.width / 2;
-
-      const dx = x - cx;
-      const dy = y - cy;
-      const distance = Math.sqrt(dx * dx + dy * dy);
-
-      if (distance <= radius) {
-        if (dx >= 0) {
-          // Separuh Kanan Pinggan = Sayur & Buah
-          return document.querySelector('.zone-sayur');
-        } else if (dy < 0) {
-          // Suku Kiri Atas = Karbohidrat
-          return document.querySelector('.zone-karbo');
-        } else {
-          // Suku Kiri Bawah = Protein
-          return document.querySelector('.zone-protein');
-        }
+      const r = realPlateEl.getBoundingClientRect();
+      const dx = x - (r.left + r.width / 2), dy = y - (r.top + r.height / 2);
+      if (Math.hypot(dx, dy) <= r.width / 2) {
+        if (dx >= 0) return zoneEl('SAYUR');
+        return dy < 0 ? zoneEl('KARBO') : zoneEl('PROTEIN');
       }
-
-      // 2. Jika di luar pinggan, semak sama ada berada di dalam Zon Merah (Hadkan)
-      const hadkanRect = hadkanBoxEl.getBoundingClientRect();
-      if (
-        x >= hadkanRect.left &&
-        x <= hadkanRect.right &&
-        y >= hadkanRect.top &&
-        y <= hadkanRect.bottom
-      ) {
-        return hadkanBoxEl;
-      }
-
+      const h = hadkanBoxEl.getBoundingClientRect();
+      if (x >= h.left && x <= h.right && y >= h.top && y <= h.bottom) return hadkanBoxEl;
       return null;
     }
-
-    // Gelung Animasi Utama (60fps)
-    function updateLoop(timestamp) {
-      currentX += (targetX - currentX) * 0.35;
-      currentY += (targetY - currentY) * 0.35;
-
-      cursorEl.style.left = `${currentX}px`;
-      cursorEl.style.top = `${currentY}px`;
-
-      if (!isProcessingFeedback && endModalEl.style.display !== 'flex' && reportModalEl.style.display !== 'flex') {
-        if (!isAttached) {
-          const cardRect = foodCardEl.getBoundingClientRect();
-          if (
-            currentX >= cardRect.left &&
-            currentX <= cardRect.right &&
-            currentY >= cardRect.top &&
-            currentY <= cardRect.bottom
-          ) {
-            isAttached = true;
-            playSound('pickup');
-            foodCardEl.classList.add('attached');
-            foodHintEl.textContent = "Masukkan ke dalam pinggan / Zon Merah";
-            guideTextEl.textContent = "Langkah 2: Bawa makanan ke bahagian pinggan bulat (atau Zon Merah) & tahan sebentar.";
-          }
-        } else {
-          foodCardEl.style.left = `${currentX}px`;
-          foodCardEl.style.top = `${currentY}px`;
-
-          const hoveredZone = getHoveredZone(currentX, currentY);
-
-          if (hoveredZone) {
-            if (activeZoneEl !== hoveredZone) {
-              clearAllZones();
-              activeZoneEl = hoveredZone;
-              activeZoneEl.classList.add('active-hover');
-              dwellStartTime = timestamp;
-            } else {
-              const elapsed = timestamp - dwellStartTime;
-              const progress = Math.min(100, (elapsed / DWELL_DURATION) * 100);
-              const barFill = activeZoneEl.querySelector('.dwell-bar-fill');
-              if (barFill) barFill.style.width = `${progress}%`;
-
-              if (elapsed >= DWELL_DURATION) {
-                evaluateAnswer(activeZoneEl.dataset.zone);
-                clearAllZones();
-              }
-            }
-          } else {
-            clearAllZones();
-          }
-        }
-      }
-
-      requestAnimationFrame(updateLoop);
-    }
-
     function clearAllZones() {
       activeZoneEl = null;
-      dropZones.forEach(z => {
-        z.classList.remove('active-hover');
-        const bar = z.querySelector('.dwell-bar-fill');
-        if (bar) bar.style.width = '0%';
-      });
+      dropZones.forEach(z => { z.classList.remove('active-hover'); const b = z.querySelector('.dwell-bar-fill'); if (b) b.style.width = '0%'; });
+    }
+
+    /* Letak emoji makanan di bahagian pinggan yang betul (koordinat peratus dalam bulatan) */
+    const ZONE_ANGLES = { SAYUR: [-Math.PI / 2, Math.PI / 2], KARBO: [Math.PI, Math.PI * 1.5], PROTEIN: [Math.PI / 2, Math.PI] };
+    function placeOnPlate(food) {
+      if (food.category === 'HADKAN') { hadkanStackEl.textContent += food.emoji; return; }
+      const [a0, a1] = ZONE_ANGLES[food.category], pad = 0.3;
+      const n = placedLayerEl.querySelectorAll(`[data-zone="${food.category}"]`).length;
+      const a = a0 + pad + ((n * 0.618) % 1) * (a1 - a0 - pad * 2);   // sebar secara sekata
+      const rad = 0.62 + ((n * 0.37) % 1) * 0.25;
+      const el = document.createElement('div');
+      el.className = 'placed-food'; el.dataset.zone = food.category; el.textContent = food.emoji;
+      el.style.left = `${50 + Math.cos(a) * rad * 50}%`; el.style.top = `${50 + Math.sin(a) * rad * 50}%`;
+      placedLayerEl.appendChild(el);
     }
 
     function evaluateAnswer(selectedCategory) {
-      isProcessingFeedback = true;
+      isProcessingFeedback = true; isAttached = false; needRelease = true;
       foodCardEl.style.display = 'none';
-
-      const currentFood = questions[currentIndex];
-      const isCorrect = selectedCategory === currentFood.category;
-
+      const f = questions[currentIndex], isCorrect = selectedCategory === f.category;
+      answers.push({ name: f.name, category: f.category, chosen: selectedCategory, correct: isCorrect });
+      placeOnPlate(f);   // makanan sentiasa muncul di tempat yang BETUL, supaya pemain nampak jawapannya
       if (isCorrect) {
-        score += 10;
-        scoreValEl.textContent = score;
+        score += 10; streak++;
         playSound('correct');
-        fbStatusEl.textContent = "BETUL! (+10 Markah)";
-        fbStatusEl.style.color = "#10b981";
-        toastEl.style.borderColor = "#10b981";
+        fbStatusEl.textContent = streak >= 3 ? `BETUL! ${streak} berturut-turut 🔥` : "BETUL! (+10 Markah)";
+        fbStatusEl.style.color = "#10b981"; toastEl.style.borderColor = "#10b981"; fbShouldEl.textContent = '';
       } else {
+        streak = 0;
         playSound('wrong');
         fbStatusEl.textContent = "KURANG TEPAT!";
-        fbStatusEl.style.color = "#ef4444";
-        toastEl.style.borderColor = "#ef4444";
+        fbStatusEl.style.color = "#ef4444"; toastEl.style.borderColor = "#ef4444";
+        fbShouldEl.textContent = `Tempat sebenar: ${ZONE_NAME[f.category]}`;
+        const target = zoneEl(f.category);
+        target.classList.remove('hint-correct'); void target.offsetWidth; target.classList.add('hint-correct');
       }
-
-      fbFactEl.textContent = `${currentFood.name}: ${currentFood.fact}`;
-      toastEl.classList.add('show');
-
-      setTimeout(() => {
+      scoreValEl.textContent = score; streakEl.textContent = streak;
+      fbEmojiEl.textContent = f.emoji;
+      fbFactEl.textContent = `${f.name}: ${f.fact}`;
+      toastTimer = setTimeout(() => toastEl.classList.add('show'), isCorrect ? 350 : 900);   // biar pemain nampak makanan "jatuh" dulu
+      feedbackTimer = setTimeout(() => {
         toastEl.classList.remove('show');
+        dropZones.forEach(z => z.classList.remove('hint-correct'));
         currentIndex++;
         loadCurrentFood();
-      }, 3100);
+      }, TOAST_MS + (isCorrect ? 350 : 900));
     }
 
     function showEndScreen() {
       const totalPossible = questions.length * 10;
-      document.getElementById('final-score').textContent = `${score} / ${totalPossible}`;
-      
-      let msg = "";
-      if (score >= 80) {
-        msg = "Hebat! Anda sangat faham cara menyusun pinggan sihat Suku Suku Separuh dan mengasingkan makanan tidak berkhasiat.";
-      } else if (score >= 50) {
-        msg = "Usaha yang baik! Ingat konsep mudah: Suku Karbohidrat, Suku Protein, dan Separuh Sayur serta Buah.";
-      } else {
-        msg = "Jangan putus asa! Jom amalkan Suku Suku Separuh setiap kali waktu makan utama.";
-      }
-      document.getElementById('final-message').textContent = msg;
+      $('final-score').textContent = `${score} / ${totalPossible}`;
+      const by = c => questions.filter(f => f.category === c).map(f => f.emoji).join('') || '–';
+      $('end-plate').textContent = `🍽️ ${by('KARBO')} · ${by('PROTEIN')} · ${by('SAYUR')}   🚫 ${by('HADKAN')}`;
+      let msg;
+      if (score >= 80) msg = "Hebat! Anda sangat faham cara menyusun pinggan sihat Suku Suku Separuh dan mengasingkan makanan tidak berkhasiat.";
+      else if (score >= 50) msg = "Usaha yang baik! Ingat konsep mudah: Suku Karbohidrat, Suku Protein, dan Separuh Sayur serta Buah.";
+      else msg = "Jangan putus asa! Jom amalkan Suku Suku Separuh setiap kali waktu makan utama.";
+      $('final-message').textContent = msg;
+      const wrong = answers.filter(a => !a.correct);
+      const recap = $('recap-box');
+      if (wrong.length) {
+        recap.innerHTML = '<div style="font-weight:800;color:#fff;margin-bottom:4px;">Semak semula:</div>' +
+          wrong.map(a => `• ${a.name} → <b>${ZONE_NAME[a.category]}</b>`).join('<br>');
+        recap.style.display = 'block';
+      } else recap.style.display = 'none';
       endModalEl.style.display = 'flex';
-
-      saveLocalRecord(score, totalPossible);
+      endShownAt = performance.now(); againHoverStart = 0;
+      saveLocalRecord(score, totalPossible, answers);
     }
 
-    // --- 4. SISTEM REKOD LAPORAN TEMPATAN (LOCALSTORAGE CSV) ---
+    /* ================= 4. REKOD LAPORAN TEMPATAN ================= */
     const STORAGE_KEY = "rekod_cabaran_pinggan_sihat";
-
-    function getRecords() {
-      try {
-        return JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
-      } catch (e) {
-        return [];
-      }
-    }
-
-    function saveLocalRecord(finalScore, maxScore) {
-      const existing = getRecords();
-      const now = new Date();
+    function getRecords() { try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]"); } catch (e) { return []; } }
+    function saveLocalRecord(finalScore, maxScore, ans) {
+      const existing = getRecords(), now = new Date();
       const tarikh = now.toLocaleDateString('en-GB', { timeZone: 'Asia/Kuching' });
       const masa = now.toLocaleTimeString('en-GB', { timeZone: 'Asia/Kuching' });
-
       existing.push({
-        bil: existing.length + 1,
-        tarikhMasa: `${tarikh} ${masa}`,
-        markah: finalScore,
-        markahPenuh: maxScore,
-        modKawalan: activeControlMode
+        bil: existing.length + 1, tarikhMasa: `${tarikh} ${masa}`, markah: finalScore, markahPenuh: maxScore,
+        modKawalan: `${activeControlMode} (${CONTROL === 'genggam' ? 'Genggam' : 'Tahan'})`,
+        jawapan: ans.map(a => ({ n: a.name, c: a.category, p: a.chosen, b: a.correct })),
       });
-
       localStorage.setItem(STORAGE_KEY, JSON.stringify(existing));
       updateReportButtonUI();
     }
+    function updateReportButtonUI() { $('btn-open-report').textContent = `Laporan (${getRecords().length})`; }
 
-    function updateReportButtonUI() {
-      const existing = getRecords();
-      const btn = document.getElementById('btn-open-report');
-      if (btn) {
-        btn.textContent = `Laporan (${existing.length})`;
+    /* Statistik ikut makanan: berapa kali dipapar, betul, salah, dan zon salah paling kerap dipilih */
+    function foodStats(records) {
+      const s = {};
+      for (const r of records) for (const a of (r.jawapan || [])) {
+        const x = s[a.n] || (s[a.n] = { name: a.n, cat: a.c, shown: 0, correct: 0, wrongTo: {} });
+        x.shown++; if (a.b) x.correct++; else x.wrongTo[a.p] = (x.wrongTo[a.p] || 0) + 1;
       }
+      return Object.values(s).map(x => ({ ...x, wrong: x.shown - x.correct, pct: x.shown ? Math.round(100 * x.correct / x.shown) : 0,
+        topWrong: Object.entries(x.wrongTo).sort((a, b) => b[1] - a[1])[0]?.[0] || '' }));
     }
 
     function openReportModal() {
-      const existing = getRecords();
-      const box = document.getElementById('report-summary-box');
-
+      const existing = getRecords(), box = $('report-summary-box');
       if (existing.length === 0) {
         box.innerHTML = "Belum ada rekod pengunjung yang menamatkan permainan setakat ini.";
       } else {
-        const totalPlayers = existing.length;
-        const sumScore = existing.reduce((acc, r) => acc + Number(r.markah), 0);
-        const avgScore = (sumScore / totalPlayers).toFixed(1);
-        const highAchievers = existing.filter(r => Number(r.markah) >= 80).length;
-        const lastPlayed = existing[existing.length - 1].tarikhMasa;
-
+        const total = existing.length, sum = existing.reduce((acc, r) => acc + Number(r.markah), 0);
+        const high = existing.filter(r => Number(r.markah) >= 80).length;
+        const hard = foodStats(existing).filter(x => x.shown >= 3 && x.wrong > 0).sort((a, b) => a.pct - b.pct).slice(0, 3);
         box.innerHTML = `
-          <div><strong>Jumlah Pemain Selesai:</strong> ${totalPlayers} orang</div>
-          <div><strong>Purata Skor Keseluruhan:</strong> ${avgScore} / 100</div>
-          <div><strong>Skor Cemerlang (80 ke atas):</strong> ${highAchievers} orang</div>
-          <div><strong>Rekod Terakhir:</strong> ${lastPlayed}</div>
-        `;
+          <div><strong>Jumlah Pemain Selesai:</strong> ${total} orang</div>
+          <div><strong>Purata Skor Keseluruhan:</strong> ${(sum / total).toFixed(1)} / 100</div>
+          <div><strong>Skor Cemerlang (80 ke atas):</strong> ${high} orang</div>
+          <div><strong>Rekod Terakhir:</strong> ${existing[total - 1].tarikhMasa}</div>
+          <div style="margin-top:10px;"><strong>Makanan paling kerap salah:</strong></div>
+          ${hard.length ? hard.map(x => `<div>• ${x.name}: ${x.pct}% betul (${x.shown} kali), kerap diletak di ${ZONE_NAME[x.topWrong] || '-'}</div>`).join('')
+                        : '<div style="color:#94a3b8;">Belum cukup data (perlu sekurang-kurangnya 3 paparan setiap makanan).</div>'}`;
       }
       reportModalEl.style.display = 'flex';
     }
+    function closeReportModal() { reportModalEl.style.display = 'none'; }
 
-    function closeReportModal() {
-      reportModalEl.style.display = 'none';
+    function downloadCSV(content, filename) {
+      const blob = new Blob(["﻿" + content], { type: "text/csv;charset=utf-8;" });   // BOM supaya Excel baca UTF-8
+      const url = URL.createObjectURL(blob), link = document.createElement("a");
+      link.href = url; link.download = filename; document.body.appendChild(link); link.click(); document.body.removeChild(link);
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
     }
-
+    const q = v => `"${String(v).replace(/"/g, '""')}"`;
     function downloadCSVReport() {
       const existing = getRecords();
-      if (existing.length === 0) {
-        alert("Tiada data pemain untuk dimuat turun.");
-        return;
+      if (!existing.length) { alert("Tiada data pemain untuk dimuat turun."); return; }
+      let csv = "Bil,Tarikh dan Masa,Markah Diperoleh,Markah Penuh,Mod Kawalan,Bil Betul,Bil Soalan,Makanan Salah\n";
+      for (const r of existing) {
+        const j = r.jawapan || [];
+        csv += [r.bil, q(r.tarikhMasa), r.markah, r.markahPenuh, q(r.modKawalan), j.filter(a => a.b).length || '', j.length || '',
+          q(j.filter(a => !a.b).map(a => a.n).join('; '))].join(',') + "\n";
       }
-
-      let csvContent = "Bil,Tarikh dan Masa,Markah Diperoleh,Markah Penuh,Mod Kawalan\n";
-      existing.forEach(row => {
-        csvContent += `${row.bil},"${row.tarikhMasa}",${row.markah},${row.markahPenuh},"${row.modKawalan}"\n`;
-      });
-
-      const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement("a");
-      link.setAttribute("href", url);
-      link.setAttribute("download", "Laporan_Output_Pinggan_Sihat.csv");
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
+      downloadCSV(csv, "Laporan_Output_Pinggan_Sihat.csv");
     }
-
+    function downloadFoodCSV() {
+      const stats = foodStats(getRecords());
+      if (!stats.length) { alert("Tiada data jawapan untuk dianalisis."); return; }
+      let csv = "Makanan,Kategori Betul,Kali Dipapar,Betul,Salah,Peratus Betul,Zon Salah Paling Kerap\n";
+      for (const x of stats.sort((a, b) => a.pct - b.pct))
+        csv += [q(x.name), q(ZONE_NAME[x.cat]), x.shown, x.correct, x.wrong, x.pct, q(ZONE_NAME[x.topWrong] || '')].join(',') + "\n";
+      downloadCSV(csv, "Analisis_Makanan_Pinggan_Sihat.csv");
+    }
     function clearLocalRecords() {
       if (confirm("Adakah anda pasti mahu memadam semua rekod pemain sebelum ini?")) {
-        localStorage.removeItem(STORAGE_KEY);
-        updateReportButtonUI();
-        openReportModal();
+        localStorage.removeItem(STORAGE_KEY); updateReportButtonUI(); openReportModal();
       }
     }
 
-    // --- 5. KAWALAN SENTUHAN SKRIN & TETIKUS (FALLBACK) ---
-    window.addEventListener('pointermove', (e) => {
-      targetX = e.clientX;
-      targetY = e.clientY;
+    /* ================= 5. INPUT: SENTUHAN / TETIKUS ================= */
+    const ptr = { x: currentX, y: currentY, grab: false, lastMove: 0 };
+    window.addEventListener('pointermove', e => { ptr.x = e.clientX; ptr.y = e.clientY; ptr.lastMove = performance.now(); lastActivity = ptr.lastMove; });
+    window.addEventListener('pointerdown', e => {
+      ptr.x = e.clientX; ptr.y = e.clientY; ptr.grab = true; ptr.lastMove = performance.now(); lastActivity = ptr.lastMove;
+      if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+    });
+    window.addEventListener('pointerup', () => { ptr.grab = false; });
+    window.addEventListener('pointercancel', () => { ptr.grab = false; });
+
+    function setControl(mode) {
+      CONTROL = mode;
+      document.body.classList.toggle('mode-genggam', mode === 'genggam');
+      $('btn-mode').textContent = mode === 'genggam' ? 'Mod: Genggam' : 'Mod: Tahan';
+      if (isAttached) returnCard(); else if (!isProcessingFeedback) { foodHintEl.textContent = pickHint(); guideTextEl.textContent = guideStep1(); }
+    }
+    window.addEventListener('keydown', e => {
+      if (e.key === 'g' || e.key === 'G') setControl(CONTROL === 'genggam' ? 'tahan' : 'genggam');
+      if (e.key === 'f' || e.key === 'F') document.documentElement.requestFullscreen?.();
     });
 
-    window.addEventListener('touchmove', (e) => {
-      if (e.touches.length > 0) {
-        targetX = e.touches[0].clientX;
-        targetY = e.touches[0].clientY;
-      }
-    }, { passive: true });
+    /* ================= 6. KAMERA: MEDIAPIPE HAND LANDMARKER ================= */
+    const videoElement = $('webcam-video'), camStatusEl = $('cam-status');
+    const hand = { x: currentX, y: currentY, grab: false, openFrames: 0, lastSeen: -1e9 };
+    let landmarker = null, lastVideoTime = -1;
 
-    // --- 6. KAWALAN KAMERA MEDIAPIPE HANDS ---
-    const videoElement = document.getElementById('webcam-video');
-    const camStatusEl = document.getElementById('cam-status');
-
-    function onResults(results) {
-      if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
-        activeControlMode = "Kamera (Hand Tracking)";
-        const palmCenter = results.multiHandLandmarks[0][9];
-        targetX = (1 - palmCenter.x) * window.innerWidth;
-        targetY = palmCenter.y * window.innerHeight;
-      }
+    function processHand(lm) {
+      const vw = videoElement.videoWidth || 640, vh = videoElement.videoHeight || 480, ar = vw / vh;
+      const d = (a, b) => Math.hypot((a.x - b.x) * ar, a.y - b.y);
+      const size = d(lm[0], lm[9]) || 1e-3;
+      const pinch = d(lm[4], lm[8]) / size;                                          // ibu jari ke telunjuk
+      const fist = [8, 12, 16, 20].reduce((s, i) => s + d(lm[i], lm[0]), 0) / 4 / size;   // hujung jari ke pergelangan
+      if (pinch < 0.32 || fist < 1.15) { hand.grab = true; hand.openFrames = 0; }
+      else if (pinch > 0.5 && fist > 1.45) { if (++hand.openFrames >= 3) hand.grab = false; }   // perlu 3 bingkai terbuka: elak tercicir
+      const c = [0, 5, 9, 13, 17].reduce((a, i) => ({ x: a.x + lm[i].x / 5, y: a.y + lm[i].y / 5 }), { x: 0, y: 0 });
+      const nx = Math.min(1, Math.max(0, (c.x - CAM_MARGIN) / (1 - 2 * CAM_MARGIN)));
+      const ny = Math.min(1, Math.max(0, (c.y - CAM_MARGIN) / (1 - 2 * CAM_MARGIN)));
+      hand.x = (1 - nx) * window.innerWidth;   // dicerminkan
+      hand.y = ny * window.innerHeight;
+      hand.lastSeen = performance.now(); lastActivity = hand.lastSeen;
+      activeControlMode = "Kamera (Hand Tracking)";
     }
-
+    function detectHands(now) {
+      if (!landmarker || videoElement.readyState < 2 || videoElement.currentTime === lastVideoTime) return;
+      lastVideoTime = videoElement.currentTime;
+      const res = landmarker.detectForVideo(videoElement, now);
+      if (!res.landmarks || !res.landmarks.length) return;
+      // Jika ramai orang di depan kamera, pilih tangan paling besar (paling dekat dengan kamera)
+      let best = res.landmarks[0], bestSize = 0;
+      for (const lm of res.landmarks) { const s = Math.hypot(lm[0].x - lm[9].x, lm[0].y - lm[9].y); if (s > bestSize) { bestSize = s; best = lm; } }
+      processHand(best);
+    }
+    async function makeLandmarker(vision, delegate) {
+      return HandLandmarker.createFromOptions(vision, {
+        baseOptions: { modelAssetPath: 'https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task', delegate },
+        runningMode: 'VIDEO', numHands: 2, minHandDetectionConfidence: 0.6, minHandPresenceConfidence: 0.6, minTrackingConfidence: 0.6,
+      });
+    }
     async function initCamera() {
       try {
-        const hands = new Hands({
-          locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`
-        });
-
-        hands.setOptions({
-          maxNumHands: 1,
-          modelComplexity: 1,
-          minDetectionConfidence: 0.65,
-          minTrackingConfidence: 0.65
-        });
-
-        hands.onResults(onResults);
-
-        const camera = new Camera(videoElement, {
-          onFrame: async () => {
-            await hands.send({ image: videoElement });
-          },
-          width: 640,
-          height: 480
-        });
-
-        await camera.start();
-        camStatusEl.textContent = "Kamera Aktif: Gerakkan tapak tangan di udara. (Tiada video dirakam/disimpan).";
+        const stream = await navigator.mediaDevices.getUserMedia({ video: { width: 1280, height: 720, facingMode: 'user' }, audio: false });
+        videoElement.srcObject = stream; await videoElement.play();
+        camStatusEl.textContent = "Memuatkan model tangan...";
+        const vision = await FilesetResolver.forVisionTasks('https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/wasm');
+        try { landmarker = await makeLandmarker(vision, 'GPU'); }
+        catch (e) { console.warn('GPU gagal, guna CPU', e); landmarker = await makeLandmarker(vision, 'CPU'); }
+        camStatusEl.textContent = "Kamera Aktif: Genggam/cubit untuk ambil, buka tangan untuk letak. (Tiada video dirakam/disimpan).";
         camStatusEl.style.color = "#38bdf8";
       } catch (err) {
         console.warn("Kamera tidak dapat diakses, menggunakan mod sentuhan/tetikus:", err);
@@ -1153,10 +644,84 @@
       }
     }
 
-    // Mulakan Permainan
-    window.addEventListener('resize', () => {
-      if (!isAttached && !isProcessingFeedback) loadCurrentFood();
-    });
+    /* ================= 7. GELUNG UTAMA ================= */
+    const modalOpen = () => endModalEl.style.display === 'flex' || reportModalEl.style.display === 'flex';
+    function inRect(x, y, r, pad = 0) { return x >= r.left - pad && x <= r.right + pad && y >= r.top - pad && y <= r.bottom + pad; }
+
+    function updateLoop(timestamp) {
+      detectHands(timestamp);
+      const now = performance.now();
+      const handActive = now - hand.lastSeen < 3000 && hand.lastSeen >= ptr.lastMove;
+      const src = handActive ? hand : ptr;
+      const grabbing = src.grab;
+      const handLost = handActive && now - hand.lastSeen > 250;
+
+      currentX += (src.x - currentX) * 0.35;
+      currentY += (src.y - currentY) * 0.35;
+      cursorEl.style.left = `${currentX}px`; cursorEl.style.top = `${currentY}px`;
+      cursorEl.classList.toggle('grabbing', CONTROL === 'genggam' && grabbing);
+      cursorEl.classList.toggle('lost', handLost);
+      cursorEl.textContent = CONTROL === 'genggam' && grabbing ? '✊' : '✋';
+
+      // Skrin tamat: kawalan tangan pada butang "Main Lagi" + kembali sendiri
+      if (endModalEl.style.display === 'flex') {
+        const elapsed = (now - endShownAt) / 1000;
+        $('auto-reset-sec').textContent = Math.max(0, Math.ceil(AUTO_RESET_S - elapsed));
+        const over = elapsed > 1.5 && inRect(currentX, currentY, againBtnEl.getBoundingClientRect(), 10);
+        if (over) { if (!againHoverStart) againHoverStart = now; } else againHoverStart = 0;
+        const p = againHoverStart ? Math.min(1, (now - againHoverStart) / AGAIN_DWELL_MS) : 0;
+        againFillEl.style.width = `${p * 100}%`;
+        if (p >= 1 || elapsed >= AUTO_RESET_S) resetGame();
+      } else if (!modalOpen() && !isProcessingFeedback) {
+        // Reset senyap jika pemain tinggalkan permainan separuh jalan
+        if ((currentIndex > 0 || isAttached) && now - lastActivity > IDLE_RESET_S * 1000) resetGame();
+
+        if (!isAttached) {
+          const overCard = inRect(currentX, currentY, foodCardEl.getBoundingClientRect(), 30);
+          if (CONTROL === 'tahan') {
+            if (overCard) attachCard();
+          } else {
+            if (!grabbing) needRelease = false;      // mesti buka tangan dulu sebelum ambil kad seterusnya
+            foodCardEl.classList.toggle('hover-ready', overCard && !needRelease);
+            if (overCard && grabbing && !needRelease) attachCard();
+          }
+        } else {
+          foodCardEl.style.left = `${currentX}px`; foodCardEl.style.top = `${currentY}px`;
+          const hoveredZone = getHoveredZone(currentX, currentY);
+          if (hoveredZone !== activeZoneEl) {
+            clearAllZones();
+            if (hoveredZone) { activeZoneEl = hoveredZone; activeZoneEl.classList.add('active-hover'); dwellStartTime = timestamp; }
+          }
+          if (CONTROL === 'tahan') {
+            if (activeZoneEl) {
+              const elapsed = timestamp - dwellStartTime;
+              const bar = activeZoneEl.querySelector('.dwell-bar-fill');
+              if (bar) bar.style.width = `${Math.min(100, (elapsed / DWELL_DURATION) * 100)}%`;
+              if (elapsed >= DWELL_DURATION) { const z = activeZoneEl.dataset.zone; clearAllZones(); evaluateAnswer(z); }
+            }
+          } else if (!grabbing) {
+            if (activeZoneEl) { const z = activeZoneEl.dataset.zone; clearAllZones(); evaluateAnswer(z); }
+            else returnCard('Kad kembali. Lepaskan makanan DI ATAS pinggan atau Zon Merah.');
+          }
+          if (isAttached && handActive && now - hand.lastSeen > 1200) returnCard('Tangan tidak kelihatan. Angkat tangan ke arah kamera.');
+        }
+      }
+      requestAnimationFrame(updateLoop);
+    }
+
+    /* ================= MULA ================= */
+    $('btn-reset').addEventListener('click', resetGame);
+    $('btn-open-report').addEventListener('click', openReportModal);
+    $('btn-close-report').addEventListener('click', closeReportModal);
+    $('btn-csv').addEventListener('click', downloadCSVReport);
+    $('btn-csv-food').addEventListener('click', downloadFoodCSV);
+    $('btn-clear').addEventListener('click', clearLocalRecords);
+    $('btn-mode').addEventListener('click', () => setControl(CONTROL === 'genggam' ? 'tahan' : 'genggam'));
+    againBtnEl.addEventListener('click', resetGame);
+    window.addEventListener('resize', () => { if (!isAttached && !isProcessingFeedback) placeCardAtSlot(false); });
+
+    // Butang di bar atas: jangan biar klik pada butang dikira sebagai "genggam" kad
+    document.querySelectorAll('button').forEach(b => b.addEventListener('pointerdown', e => e.stopPropagation()));
 
     updateReportButtonUI();
     resetGame();
