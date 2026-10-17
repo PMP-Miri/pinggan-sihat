@@ -23,30 +23,35 @@
     #webcam-video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; transform: scaleX(-1); opacity: 0.38; z-index: 1; }
 
     #game-layer { position: relative; z-index: 10; width: 100%; height: 100%; display: flex; flex-direction: column;
-      justify-content: space-between; padding: 12px 22px; gap: 10px; }
+      padding: 10px 18px 14px; gap: 8px; }
 
+    /* Bar atas: SATU baris sahaja. Tajuk di kiri (dipendekkan jika sempit), statistik & butang di kanan */
     .top-bar { display: flex; justify-content: space-between; align-items: center; background: var(--card-bg);
-      padding: 10px 18px; border-radius: 14px; border: 1px solid rgba(255,255,255,0.12); flex-wrap: wrap; gap: 10px; flex-shrink: 0; }
-    .brand-title { font-size: 1.18rem; font-weight: 800; color: var(--accent); }
-    .privacy-note { font-size: 0.75rem; color: #94a3b8; margin-top: 2px; }
-    .stats-box { display: flex; gap: 14px; align-items: center; flex-wrap: wrap; }
-    .stat-item { text-align: right; padding-right: 6px; }
-    .stat-label { font-size: 0.68rem; text-transform: uppercase; color: #cbd5e1; letter-spacing: 0.5px; }
-    .stat-value { font-size: 1.3rem; font-weight: 800; color: #ffffff; }
+      padding: 7px 14px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.12); flex-wrap: nowrap; gap: 14px; flex-shrink: 0; }
+    .brand-box { min-width: 0; flex: 1; }
+    .brand-title { font-size: clamp(0.95rem, 1.4vw, 1.7rem); font-weight: 800; color: var(--accent); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .privacy-note { font-size: clamp(0.72rem, 0.75vw, 0.95rem); color: #94a3b8; margin-top: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .stats-box { display: flex; gap: 8px; align-items: center; flex-wrap: nowrap; flex-shrink: 0; }
+    .stat-item { text-align: center; min-width: 58px; padding: 2px 8px; background: rgba(15,23,42,0.6); border-radius: 8px; }
+    .stat-label { font-size: clamp(0.6rem, 0.65vw, 0.85rem); text-transform: uppercase; color: #cbd5e1; letter-spacing: 0.5px; line-height: 1.2; }
+    .stat-value { font-size: clamp(1.1rem, 1.4vw, 1.8rem); font-weight: 800; color: #ffffff; line-height: 1.2; }
     .stat-streak { color: #facc15; }
-    .btn-control { background: #334155; color: #f8fafc; border: 1px solid #475569; padding: 8px 14px; border-radius: 8px;
-      cursor: pointer; font-weight: 600; font-size: 0.8rem; transition: background 0.15s; }
+    .stats-divider { width: 1px; align-self: stretch; background: rgba(255,255,255,0.15); margin: 0 4px; }
+    .btn-control { background: #334155; color: #f8fafc; border: 1px solid #475569; padding: 6px 10px; border-radius: 8px; white-space: nowrap;
+      cursor: pointer; font-weight: 600; font-size: clamp(0.75rem, 0.8vw, 1rem); transition: background 0.15s; }
     .btn-control:hover { background: #475569; }
     .btn-report { background: rgba(56, 189, 248, 0.15); border-color: var(--accent); color: var(--accent); }
 
-    .instruction-banner { background: rgba(15, 23, 42, 0.92); padding: 6px 18px; border-radius: 20px; font-size: 0.95rem;
-      color: #e2e8f0; border: 1px solid rgba(56, 189, 248, 0.35); text-align: center; font-weight: 600; width: fit-content;
+    .instruction-banner { background: rgba(15, 23, 42, 0.92); padding: 5px 18px; border-radius: 20px; font-size: clamp(0.82rem, 1.2vw, 1.5rem);
+      color: #e2e8f0; border: 1px solid rgba(56, 189, 248, 0.35); text-align: center; font-weight: 600; width: fit-content; max-width: 100%;
       margin: 0 auto; flex-shrink: 0; }
 
-    .main-arena { display: flex; justify-content: center; align-items: center; gap: 34px; flex: 1; min-height: 0; padding-bottom: 6px; }
+    /* Arena guna "container query": saiz pinggan ikut ruang yang TINGGAL selepas bar atas, bukan tinggi skrin penuh */
+    .main-arena { container-type: size; display: flex; justify-content: center; align-items: center; gap: clamp(16px, 3cqw, 40px); flex: 1; min-height: 0; }
+    .plate-outer-rim, .side-column { --plate: min(98cqh, 60cqw); }
 
-    .plate-outer-rim { width: min(74vh, 56vw, 590px); height: min(74vh, 56vw, 590px); border-radius: 50%;
-      background: radial-gradient(circle, #ffffff 62%, #cbd5e1 100%); padding: 18px;
+    .plate-outer-rim { width: var(--plate); height: var(--plate); border-radius: 50%;
+      background: radial-gradient(circle, #ffffff 62%, #cbd5e1 100%); padding: calc(var(--plate) * 0.03);
       box-shadow: 0 22px 50px rgba(0,0,0,0.7), inset 0 4px 12px rgba(255,255,255,0.95), inset 0 -6px 16px rgba(15, 23, 42, 0.4);
       display: flex; align-items: center; justify-content: center; position: relative; flex-shrink: 0; }
     #real-plate { width: 100%; height: 100%; border-radius: 50%; overflow: hidden; display: grid; grid-template-columns: 1fr 1fr;
@@ -59,11 +64,11 @@
     .zone-sayur { grid-column: 2; grid-row: 1 / span 2; background: linear-gradient(90deg, rgba(5, 150, 105, 0.94), rgba(16, 185, 129, 0.92));
       border-left: 6px solid var(--plate-rim); justify-content: center; align-items: center; padding: 12% 16% 12% 6%; }
 
-    .side-column { display: flex; flex-direction: column; justify-content: space-between; gap: 18px; width: 280px;
-      height: min(74vh, 56vw, 590px); flex-shrink: 0; }
-    .spawn-box-wrapper { background: var(--card-bg); border: 2px solid rgba(56, 189, 248, 0.4); border-radius: 22px; padding: 14px;
-      display: flex; flex-direction: column; align-items: center; justify-content: center; height: 40%; min-height: 160px; }
-    .spawn-label-top { font-size: 0.75rem; font-weight: 800; text-transform: uppercase; color: var(--accent); margin-bottom: 8px; letter-spacing: 0.5px; }
+    .side-column { display: flex; flex-direction: column; justify-content: space-between; gap: 14px; width: clamp(220px, 26cqw, 400px);
+      height: var(--plate); flex-shrink: 0; }
+    .spawn-box-wrapper { background: var(--card-bg); border: 2px solid rgba(56, 189, 248, 0.4); border-radius: 20px; padding: 10px 12px 12px;
+      display: flex; flex-direction: column; align-items: center; justify-content: center; height: 48%; min-height: 170px; }
+    .spawn-label-top { font-size: clamp(0.75rem, 0.85vw, 1.15rem); font-weight: 800; text-transform: uppercase; color: var(--accent); margin-bottom: 6px; letter-spacing: 0.5px; flex-shrink: 0; }
     #spawn-slot { width: 100%; flex: 1; border: 2px dashed rgba(255,255,255,0.35); border-radius: 14px; display: flex; align-items: center;
       justify-content: center; color: #94a3b8; font-size: 0.85rem; font-weight: 600; background: rgba(15, 23, 42, 0.5); }
 
@@ -74,29 +79,29 @@
     #hadkan-stack { font-size: 1.6rem; min-height: 2rem; letter-spacing: 2px; }
 
     /* Kad makanan */
-    #food-card { position: fixed; width: 235px; padding: 12px 16px; background: #ffffff; color: #0f172a; border-radius: 14px;
+    #food-card { position: fixed; width: clamp(205px, 15vw, 320px); padding: 8px 12px; background: #ffffff; color: #0f172a; border-radius: 14px;
       box-shadow: 0 14px 30px rgba(0,0,0,0.6); text-align: center; z-index: 60; pointer-events: none; transform: translate(-50%, -50%);
       transition: transform 0.08s ease-out, box-shadow 0.2s; border: 4px solid var(--accent); }
     #food-card.hover-ready { border-color: #a3e635; box-shadow: 0 0 22px rgba(163, 230, 53, 0.8); }
     #food-card.attached { border-color: #facc15; box-shadow: 0 0 28px rgba(250, 204, 21, 0.9); transform: translate(-50%, -50%) scale(1.06); }
     #food-card.returning { transition: left 0.35s ease-out, top 0.35s ease-out, transform 0.08s; }
-    .food-emoji { font-size: 2.8rem; line-height: 1.1; }
-    .food-name { font-size: 1.12rem; font-weight: 800; margin-bottom: 3px; line-height: 1.25; }
-    .food-hint { font-size: 0.75rem; color: #475569; font-weight: 700; }
+    .food-emoji { font-size: clamp(2.2rem, 3vw, 3.6rem); line-height: 1.1; }
+    .food-name { font-size: clamp(1rem, 1.3vw, 1.5rem); font-weight: 800; margin-bottom: 2px; line-height: 1.2; }
+    .food-hint { font-size: clamp(0.7rem, 0.8vw, 1rem); color: #475569; font-weight: 700; }
 
     .drop-zone.active-hover { filter: brightness(1.22); outline: 4px solid #ffffff; z-index: 5; }
     .zone-hadkan.active-hover { transform: scale(1.03); border-style: solid; border-color: #ffffff; }
     .drop-zone.hint-correct { animation: hintPulse 0.45s ease-in-out 6 alternate; outline: 5px solid #facc15; z-index: 6; }
     @keyframes hintPulse { from { filter: brightness(1); } to { filter: brightness(1.5); } }
 
-    .zone-badge { display: inline-block; padding: 3px 10px; border-radius: 12px; font-size: clamp(0.62rem, 1.1vw, 0.78rem); font-weight: 900;
+    .zone-badge { display: inline-block; padding: 3px 10px; border-radius: 12px; font-size: clamp(0.62rem, 0.9vw, 1.1rem); font-weight: 900;
       text-transform: uppercase; letter-spacing: 0.4px; margin-bottom: 4px; box-shadow: 0 2px 6px rgba(0,0,0,0.3); white-space: nowrap; }
     .zone-karbo .zone-badge { background: #fef08a; color: #713f12; }
     .zone-protein .zone-badge { background: #fed7aa; color: #7c2d12; }
     .zone-sayur .zone-badge { background: #a7f3d0; color: #064e3b; }
     .zone-hadkan .zone-badge { background: #ffffff; color: #b91c1c; }
-    .zone-title { font-size: clamp(1rem, 1.8vw, 1.45rem); font-weight: 900; color: #ffffff; text-shadow: 0 2px 4px rgba(0,0,0,0.5); line-height: 1.15; }
-    .zone-desc { font-size: clamp(0.7rem, 1.15vw, 0.88rem); color: #f8fafc; margin-top: 4px; line-height: 1.25; font-weight: 600; max-width: 92%; }
+    .zone-title { font-size: clamp(1rem, 1.8vw, 2.5rem); font-weight: 900; color: #ffffff; text-shadow: 0 2px 4px rgba(0,0,0,0.5); line-height: 1.15; }
+    .zone-desc { font-size: clamp(0.7rem, 1vw, 1.35rem); color: #f8fafc; margin-top: 4px; line-height: 1.25; font-weight: 600; max-width: 92%; }
 
     /* Bar masa tahan: hanya dipapar dalam mod "tahan" */
     .dwell-bar-bg { width: 68%; max-width: 145px; height: 10px; background: rgba(0,0,0,0.5); border-radius: 6px; overflow: hidden;
@@ -144,11 +149,18 @@
     .btn-danger { background: #ef4444; color: #ffffff; font-weight: 700; font-size: 0.9rem; padding: 10px 18px; border: none; border-radius: 10px; cursor: pointer; margin-top: 12px; }
     .report-summary { background: #0f172a; padding: 16px; border-radius: 12px; margin: 16px 0; text-align: left; font-size: 0.95rem; line-height: 1.6; color: #cbd5e1; }
 
+    /* Skrin sempit: sembunyi teks kecil supaya bar atas kekal satu baris */
+    @media (max-width: 1100px) {
+      .privacy-note { display: none; }
+      .stat-item { min-width: 50px; padding: 2px 6px; }
+    }
     @media (max-width: 860px) {
-      .main-arena { flex-direction: column; gap: 14px; }
-      .plate-outer-rim { width: min(50vh, 84vw, 400px); height: min(50vh, 84vw, 400px); padding: 12px; }
-      .side-column { flex-direction: row; width: 92vw; height: 150px; }
-      .spawn-box-wrapper { height: 100%; width: 48%; min-height: 0; }
+      .top-bar { flex-wrap: wrap; }
+      .stats-divider { display: none; }
+      .main-arena { flex-direction: column; gap: 12px; }
+      .plate-outer-rim { --plate: min(60cqh, 92cqw, 420px); }
+      .side-column { flex-direction: row; width: 92cqw; height: calc(36cqh); max-height: 190px; }
+      .spawn-box-wrapper { height: 100%; width: 50%; min-height: 0; }
       .zone-hadkan { height: 100%; padding: 12px; }
     }
   </style>
@@ -166,14 +178,15 @@
 
   <div id="game-layer">
     <div class="top-bar">
-      <div>
+      <div class="brand-box">
         <div class="brand-title">Cabaran Pinggan Sihat: Suku Suku Separuh</div>
-        <div class="privacy-note" id="cam-status">Mencari kamera... (Boleh juga guna sentuhan skrin/tetikus). Tiada video dirakam.</div>
+        <div class="privacy-note" id="cam-status">Mencari kamera… · Tiada video dirakam</div>
       </div>
       <div class="stats-box">
-        <div class="stat-item"><div class="stat-label">Soalan</div><div class="stat-value" id="q-counter">1 / 10</div></div>
+        <div class="stat-item"><div class="stat-label">Soalan</div><div class="stat-value" id="q-counter">1/10</div></div>
         <div class="stat-item"><div class="stat-label">Markah</div><div class="stat-value" id="score-val">0</div></div>
         <div class="stat-item"><div class="stat-label">Berturut</div><div class="stat-value stat-streak" id="streak-val">0</div></div>
+        <div class="stats-divider"></div>
         <button class="btn-control" id="btn-mode" title="Kekunci G">Mod: Genggam</button>
         <button class="btn-control btn-report" id="btn-open-report">Laporan (0)</button>
         <button class="btn-control" id="btn-reset">Mula Semula</button>
@@ -298,6 +311,12 @@
       { emoji: "🍘", name: "Keropok Segera Masin", category: "HADKAN", fact: "Tinggi kandungan garam dan perisa tambahan yang meningkatkan risiko tekanan darah tinggi." },
       { emoji: "☕", name: "Teh Tarik Manis", category: "HADKAN", fact: "Minuman manis menambah gula tanpa kita sedar. Minta 'kurang manis' atau pilih air kosong." },
       { emoji: "🍩", name: "Kuih Goreng & Donut", category: "HADKAN", fact: "Tinggi gula dan minyak. Nikmati sekali-sekala dalam saiz kecil, bukan setiap hari." },
+      // --- 5 makanan tambahan ---
+      { emoji: "🌽", name: "Jagung Rebus", category: "KARBO", fact: "Jagung ialah sejenis bijirin, jadi ia tergolong dalam kumpulan karbohidrat, bukan sayur. Jagung rebus tanpa mentega pilihan yang baik." },
+      { emoji: "🦐", name: "Udang Bakar / Masak Asam", category: "PROTEIN", fact: "Udang ialah sumber protein rendah lemak. Pilih cara bakar, rebus atau masak asam berbanding goreng bersalut tepung." },
+      { emoji: "🍌", name: "Pisang (1 Biji)", category: "SAYUR", fact: "Pisang kaya dengan kalium yang membantu mengawal tekanan darah, dan mudah dibawa sebagai snek sihat." },
+      { emoji: "🍉", name: "Tembikai Segar", category: "SAYUR", fact: "Lebih 90% tembikai ialah air. Buah yang menyegarkan dan membantu hidrasi pada hari panas." },
+      { emoji: "🧋", name: "Bubble Tea", category: "HADKAN", fact: "Sirap dan mutiara tapioka menjadikan bubble tea antara minuman paling tinggi gula. Pilih saiz kecil dan paras gula paling rendah." },
     ];
 
     /* ================= 2. BUNYI ================= */
@@ -383,7 +402,7 @@
       foodCardEl.classList.remove('attached', 'hover-ready');
       const f = questions[currentIndex];
       foodEmojiEl.textContent = f.emoji; foodNameEl.textContent = f.name; foodHintEl.textContent = pickHint();
-      qCounterEl.textContent = `${currentIndex + 1} / ${questions.length}`;
+      qCounterEl.textContent = `${currentIndex + 1}/${questions.length}`;
       guideTextEl.textContent = guideStep1();
       placeCardAtSlot(false);
       foodCardEl.style.display = 'block';
@@ -632,15 +651,15 @@
       try {
         const stream = await navigator.mediaDevices.getUserMedia({ video: { width: 1280, height: 720, facingMode: 'user' }, audio: false });
         videoElement.srcObject = stream; await videoElement.play();
-        camStatusEl.textContent = "Memuatkan model tangan...";
+        camStatusEl.textContent = "Memuatkan model tangan… · Tiada video dirakam";
         const vision = await FilesetResolver.forVisionTasks('https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/wasm');
         try { landmarker = await makeLandmarker(vision, 'GPU'); }
         catch (e) { console.warn('GPU gagal, guna CPU', e); landmarker = await makeLandmarker(vision, 'CPU'); }
-        camStatusEl.textContent = "Kamera Aktif: Genggam/cubit untuk ambil, buka tangan untuk letak. (Tiada video dirakam/disimpan).";
+        camStatusEl.textContent = "Kamera aktif · Tiada video dirakam atau disimpan";
         camStatusEl.style.color = "#38bdf8";
       } catch (err) {
         console.warn("Kamera tidak dapat diakses, menggunakan mod sentuhan/tetikus:", err);
-        camStatusEl.textContent = "Mod Sentuhan/Tetikus Aktif (Kamera tidak dikesan atau tidak dibenarkan).";
+        camStatusEl.textContent = "Mod sentuhan/tetikus · Kamera tidak dikesan";
       }
     }
 
